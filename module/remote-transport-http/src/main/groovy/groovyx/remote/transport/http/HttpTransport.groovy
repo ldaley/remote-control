@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package groovyx.remote.http
+package groovyx.remote.transport.http
 
 import groovyx.remote.*
 import groovyx.remote.util.*
@@ -25,13 +25,14 @@ import groovyx.remote.client.AbstractTransport
 class HttpTransport extends AbstractTransport {
 
 	final receiverAddress
+	final classLoader
 	
 	/**
 	 * @param receiverAddress the full address to the remote receiver
 	 * @param classLoader the class loader to use when unserialising the result
 	 */
 	HttpTransport(String receiverAddress, ClassLoader classLoader) {
-		super(classLoader)
+		this.classLoader = classLoader
 		this.receiverAddress = receiverAddress
 	}
 
@@ -48,7 +49,7 @@ class HttpTransport extends AbstractTransport {
 			doOutput = true
 			
 			writeCommandChain(commandChain, outputStream)
-			readResult(inputStream)
+			readResult(inputStream, classLoader)
 		}
 	}
 	

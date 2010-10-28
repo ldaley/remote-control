@@ -25,11 +25,11 @@ allprojects {
 }
 
 def groovyModules = [
-	":module:remote-core", ":module:remote-transport-http"
+	":module:remote-core", ":module:remote-transport-local", ":module:remote-transport-http"
 ]
 
 def publishedModules = [
-	":module:remote-core", ":module:remote-transport-http"
+	":module:remote-core", ":module:remote-transport-local"
 ]
 
 subprojects {
@@ -46,8 +46,8 @@ subprojects {
 			testCompile spockDependency
 		}
 		
-		compileGroovy.options.fork = false
-		compileTestGroovy.options.fork = false
+/*		compileGroovy.options.fork = false*/
+/*		compileTestGroovy.options.fork = false*/
 		
 		if (project.hasProperty('t')) {
 			test.doFirst {
@@ -125,6 +125,9 @@ subprojects {
 }
 
 project(':module:remote-core') {
+	dependencies {
+		testCompile project(":module:remote-transport-local")
+	}
 }
 
 project(':module:remote-transport-http') {
@@ -136,6 +139,6 @@ project(':module:remote-transport-http') {
 
 project(':module:remote-transport-local') {
 	dependencies {
-/*		compile project(":module:remote-core")*/
+		compile project(":module:remote-core")
 	}
 }

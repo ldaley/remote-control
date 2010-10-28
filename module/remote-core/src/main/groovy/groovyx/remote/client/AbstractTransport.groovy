@@ -23,15 +23,6 @@ import groovyx.remote.util.*
  */
 abstract class AbstractTransport implements Transport {
 
-	final classLoader
-	
-	/**
-	 * @param classLoader the class loader to use when unserialising the result
-	 */
-	AbstractTransport(ClassLoader classLoader) {
-		this.classLoader = classLoader
-	}
-
 	protected void writeCommandChain(CommandChain commandChain, OutputStream output) {
 		def oos = new ObjectOutputStream(output)
 		oos << commandChain
@@ -39,7 +30,7 @@ abstract class AbstractTransport implements Transport {
 		oos.close()
 	}
 	
-	protected Result readResult(InputStream input) {
+	protected Result readResult(InputStream input, ClassLoader classLoader) {
 		new ClassLoaderConfigurableObjectInputStream(classLoader, input).readObject()
 	}
 

@@ -45,7 +45,7 @@ class Receiver {
 	}
 	
 	protected Map createStorageCommandDelegateSeed() {
-		[:]
+		[a: "1"]
 	}
 	
 	protected writeResult(Result result, OutputStream output) {

@@ -17,6 +17,8 @@ package groovyx.remote.server
 
 import groovyx.remote.*
 import groovyx.remote.util.*
+import org.codehaus.groovy.runtime.InvokerInvocationException
+import org.codehaus.groovy.runtime.StackTraceUtils
 
 class CommandInvoker {
 	
@@ -37,7 +39,12 @@ class CommandInvoker {
 			instance.delegate = delegate
 			Result.forValue(invoke(instance, arg))
 		} catch (Throwable thrown) {
-			Result.forThrown(thrown)
+			// If the server and client do not share the groov classes, we get this
+			if (parentLoader.loadClass(InvokerInvocationException.name).isAssignableFrom(thrown.class)) {
+				thrown = thrown.cause
+			}
+
+			Result.forThrown(StackTraceUtils.deepSanitize(thrown))
 		}
 	}
 	

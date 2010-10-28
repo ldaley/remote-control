@@ -33,10 +33,10 @@ class InnerClosureClassDefinitionsFinder {
 					def packageDir = packageDirPath ? jarFile.getEntry(packageDirPath) : root
 					
 					if (packageDir != null) {
-						for (entry in root.entries()) {
+						for (entry in jarFile.entries()) {
 							def name = entry.name
 							if (name.startsWith(innerClassPrefixWithPackage) && name.endsWith(".class")) {
-								classes << root.getInputStream(name).bytes
+								classes << jarFile.getInputStream(name).bytes
 							}
 						}
 					}

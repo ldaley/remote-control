@@ -29,7 +29,7 @@ class StorageCommandDelegate {
 		this.storage = storage
 	}
 	
-	def getProperty(String name) {
+	def propertyMissing(String name) {
 		if (storage.containsKey(name)) {
 			storage[name]
 		} else {
@@ -37,7 +37,7 @@ class StorageCommandDelegate {
 		}
 	}
 
-	void setProperty(String name, value) {
+	void propertyMissing(String name, value) {
 		storage[name] = value
 	}
 }
