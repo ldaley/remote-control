@@ -20,6 +20,12 @@ import groovyx.remote.util.*
 
 class Receiver {
 	
+	final ClassLoader classLoader
+	
+	Receiver(ClassLoader classLoader) {
+		this.classLoader = classLoader
+	}
+	
 	void execute(InputStream input, OutputStream output) {
 		def commandChain = readCommandChain(input)
 		def result = invokeCommandChain(commandChain)
@@ -27,11 +33,11 @@ class Receiver {
 	}
 	
 	protected CommandChain readCommandChain(InputStream input) {
-		new ClassLoaderConfigurableObjectInputStream(grailsApplication.classLoader, input).readObject()
+		new ClassLoaderConfigurableObjectInputStream(classLoader, input).readObject()
 	}
 	
 	protected Result invokeCommandChain(CommandChain commandChain) {
-		new CommandChainInvoker(grailsApplication.classLoader, commandChain).invokeAgainst(createCommandDelegate())
+		new CommandChainInvoker(classLoader, commandChain).invokeAgainst(createCommandDelegate())
 	}
 	
 	protected createCommandDelegate() {
