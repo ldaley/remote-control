@@ -15,6 +15,8 @@
  */
 package groovyx.remote
 
+import groovyx.remote.util.ClassLoaderConfigurableObjectInputStream
+
 class Result implements Serializable {
 
 	boolean wasNull = false
@@ -59,6 +61,17 @@ class Result implements Serializable {
 			value: serializable,
 			stringRepresentation: serializable.toString()
 		)
+	}
+	
+	void writeTo(OutputStream output) {
+		def oos = new ObjectOutputStream(output)
+		oos << this
+		oos.flush()
+		oos.close()
+	}
+	
+	static Result readFrom(InputStream input, ClassLoader classLoader) {
+		new ClassLoaderConfigurableObjectInputStream(classLoader, input).readObject()
 	}
 }
 

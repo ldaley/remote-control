@@ -17,9 +17,9 @@ package groovyx.remote.transport.local
 
 import groovyx.remote.*
 import groovyx.remote.server.Receiver
-import groovyx.remote.client.AbstractTransport
+import groovyx.remote.client.Transport
 
-class LocalTransport extends AbstractTransport {
+class LocalTransport implements Transport {
 
 	final serverClassLoader
 	final clientClassLoader
@@ -31,10 +31,10 @@ class LocalTransport extends AbstractTransport {
 
 	Result send(CommandChain commandChain) throws IOException {
 		def commandBytes = new ByteArrayOutputStream()
-		writeCommandChain(commandChain, commandBytes)
+		commandChain.writeTo(commandBytes)
 		def resultBytes = new ByteArrayOutputStream()
 		createReceiver().execute(new ByteArrayInputStream(commandBytes.toByteArray()), resultBytes)
-		readResult(new ByteArrayInputStream(resultBytes.toByteArray()), clientClassLoader)
+		Result.readFrom(new ByteArrayInputStream(resultBytes.toByteArray()), clientClassLoader)
 	}
 	
 	protected Receiver createReceiver() {

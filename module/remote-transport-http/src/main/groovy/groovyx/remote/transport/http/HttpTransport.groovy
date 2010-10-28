@@ -17,12 +17,12 @@ package groovyx.remote.transport.http
 
 import groovyx.remote.*
 import groovyx.remote.util.*
-import groovyx.remote.client.AbstractTransport
+import groovyx.remote.client.Transport
 
 /**
  * Transports commands over http to the given receiver address.
  */
-class HttpTransport extends AbstractTransport {
+class HttpTransport implements Transport {
 
 	final receiverAddress
 	final classLoader

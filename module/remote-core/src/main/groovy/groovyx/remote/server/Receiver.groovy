@@ -16,7 +16,7 @@
 package groovyx.remote.server
 
 import groovyx.remote.*
-import groovyx.remote.util.*
+
 
 class Receiver {
 	
@@ -27,13 +27,8 @@ class Receiver {
 	}
 	
 	void execute(InputStream input, OutputStream output) {
-		def commandChain = readCommandChain(input)
-		def result = invokeCommandChain(commandChain)
-		writeResult(result, output)
-	}
-	
-	protected CommandChain readCommandChain(InputStream input) {
-		new ClassLoaderConfigurableObjectInputStream(classLoader, input).readObject()
+		def commandChain = CommandChain.readFrom(input, classLoader)
+		invokeCommandChain(commandChain).writeTo(output)
 	}
 	
 	protected Result invokeCommandChain(CommandChain commandChain) {
@@ -48,10 +43,5 @@ class Receiver {
 		[a: "1"]
 	}
 	
-	protected writeResult(Result result, OutputStream output) {
-		def oos = new ObjectOutputStream(output)
-		oos << result
-		oos.close()
-	}
 }
 

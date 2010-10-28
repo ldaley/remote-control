@@ -15,6 +15,19 @@
  */
 package groovyx.remote
 
+import groovyx.remote.util.ClassLoaderConfigurableObjectInputStream
+
 class CommandChain implements Serializable {
 	List<Command> commands
+	
+	void writeTo(OutputStream output) {
+		def oos = new ObjectOutputStream(output)
+		oos << this
+		oos.flush()
+		oos.close()
+	}
+	
+	static CommandChain readFrom(InputStream input, ClassLoader classLoader) {
+		new ClassLoaderConfigurableObjectInputStream(classLoader, input).readObject()
+	}
 }
