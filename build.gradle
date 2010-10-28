@@ -1,0 +1,141 @@
+buildscript {
+	repositories {
+		mavenRepo urls: "http://gradle.artifactoryonline.com/gradle/plugins"
+		mavenCentral()
+	}
+	dependencies {
+		classpath "org.gradle.plugins:gradle-idea-plugin:0.2",
+		          "org.apache.maven.wagon:wagon-webdav-jackrabbit:1.0-beta-6"
+	}
+}
+
+dependsOnChildren()
+
+allprojects {
+	groovyVersion = "1.7.5"
+	spockVersion = "0.5-groovy-1.7-SNAPSHOT"
+	
+	spockDependency = "org.spockframework:spock-core:$spockVersion"
+	groovyDependency = "org.codehaus.groovy:groovy-all:$groovyVersion"
+	
+	repositories {
+		mavenCentral()
+		mavenRepo name: "spock-snapshots", urls: ["http://m2repo.spockframework.org/snapshots"]
+	}
+}
+
+def groovyModules = [
+	":module:remote-core", ":module:remote-transport-http"
+]
+
+def publishedModules = [
+	":module:remote-core", ":module:remote-transport-http"
+]
+
+subprojects {
+	version = '0.1-SNAPSHOT'
+	group = 'org.codehaus.groovy.remote'
+	
+	apply plugin: "org.gradle.idea"
+		
+	if (project.path in groovyModules) {
+		apply plugin: "groovy"
+		
+		dependencies {
+			groovy groovyDependency
+			testCompile spockDependency
+		}
+		
+		compileGroovy.options.fork = false
+		compileTestGroovy.options.fork = false
+		
+		if (project.hasProperty('t')) {
+			test.doFirst {
+				test.include "**/${t}*.class"
+			}
+		}
+		
+		test.ignoreFailures = true
+
+		sourceCompatibility = 1.5
+		targetCompatibility = 1.5
+		
+		configurations {
+			compile.transitive = true
+			testCompile.transitive = true
+		}
+		
+		task listCompile(dependsOn: configurations.compile) << {
+			println "compile classpath = ${configurations.compile.resolve().collect {File file -> file.name}.sort()}"
+		}
+
+		task listRuntime(dependsOn: configurations.runtime) << {
+			println "runtime classpath = ${configurations.runtime.resolve().collect {File file -> file.name}.sort()}"
+		}
+	}
+	
+	if (project.path in publishedModules) {
+		apply plugin: 'maven'
+		
+		configurations {
+			deployerJars
+		}
+		
+		dependencies {
+			deployerJars "org.apache.maven.wagon:wagon-http-lightweight:1.0-beta-6"
+		}
+		
+		project.poms = [install.repositories.mavenInstaller.pom]
+		
+		if (project.hasProperty('codehausUsername') && project.hasProperty('codehausPassword')) {
+			uploadArchives {
+				project.deployer = repositories.mavenDeployer {
+					uniqueVersion = false
+					configuration = configurations.deployerJars
+					repository(url: "https://dav.codehaus.org/repository/gmod/") {
+						authentication(userName: codehausUsername, password: codehausPassword)
+					}
+					snapshotRepository(url: "https://dav.codehaus.org/snapshots.repository/gmod/") {
+						authentication(userName: codehausUsername, password: codehausPassword)
+					}
+					pom.project {
+						licenses {
+							license {
+								name 'The Apache Software License, Version 2.0'
+								url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+								distribution 'repo'
+							}
+						}
+					}
+				}
+				project.poms << project.deployer.pom 
+			}
+		}
+		
+		// Method that subprojects can use to mod the poms
+		project.modifyPom = { 
+			project.poms*.whenConfigured(it) 
+		}
+		
+		// Remove test deps from all poms
+		modifyPom { pom ->
+			pom.dependencies.removeAll(pom.dependencies.findAll { it.scope == "test" })
+		}
+	}
+}
+
+project(':module:remote-core') {
+}
+
+project(':module:remote-transport-http') {
+	dependencies {
+		compile project(":module:remote-core"),
+		        "javax.servlet:servlet-api:2.4"
+	}
+}
+
+project(':module:remote-transport-local') {
+	dependencies {
+/*		compile project(":module:remote-core")*/
+	}
+}

@@ -1,0 +1,3 @@
+include "module:remote-core", 
+        "module:remote-transport-local",
+        "module:remote-transport-http"
