@@ -19,9 +19,7 @@ import groovyx.remote.Command
 import groovyx.remote.util.ClosureUtils
 
 /**
- * Serialises closures to Command objects that are suitable for transmission.
- * 
- * Finds the corresponding .class file for the closure and any inner closures.
+ * Generates command objects from closures.
  */
 class CommandGenerator {
 
@@ -36,43 +34,45 @@ class CommandGenerator {
 	}
 	
 	Command generate(Closure closure) {
-		def closureClass = ClosureUtils.getRootClosure(closure).class
+		def cloned = closure.clone()
+		def root = getRootClosure(cloned)
 		
 		new Command(
-			instance: serializeInstance(closure),
-			root: getClassFile(closureClass).bytes,
-			supports: new InnerClosureClassDefinitionsFinder(classLoader).find(closureClass)
+			instance: serializeInstance(cloned, root),
+			root: getClassBytes(root.class),
+			supports: getSupportingClassesBytes(root.class)
 		)
 	}
 	
-	protected File getClassFile(Class closureClass) {
-		def classFileResource = classLoader.findResource(getClassFileResourceName(closureClass))
+	protected getRootClosure(Closure closure) {
+		ClosureUtils.getRootClosure(closure)
+	}
+	
+	protected List<byte[]> getSupportingClassesBytes(Class closureClass) {
+		new InnerClosureClassDefinitionsFinder(classLoader).find(closureClass)
+	}
+	
+	protected byte[] getClassBytes(Class closureClass) {
+		def classFileResource = classLoader.findResource(getClassFileName(closureClass))
 		if (classFileResource == null) {
 			throw new IllegalStateException("Could not find class file for class ${closureClass}")
 		}
 		
-		new File(classFileResource.file)
+		new File(classFileResource.file).bytes
 	}
 	
-	protected String getClassFileResourceBase(Class closureClass) {
-		closureClass.name.replace('.', '/')
+	protected String getClassFileName(Class closureClass) {
+		closureClass.name.replace('.', '/') + ".class"
 	}
 	
-	protected String getClassFileResourceName(Class closureClass) {
-		getClassFileResourceBase(closureClass) + ".class"
-	}
-	
-	protected serializeInstance(Closure closure) {
-		def cloned = closure.clone()
-		
-		def nullOutTarget = ClosureUtils.getRootClosure(cloned)
-		Closure.metaClass.setAttribute(nullOutTarget, 'owner', null)
-		Closure.metaClass.setAttribute(nullOutTarget, 'thisObject', null)
-		nullOutTarget.delegate = null
+	protected serializeInstance(Closure closure, Closure root) {
+		Closure.metaClass.setAttribute(root, 'owner', null)
+		Closure.metaClass.setAttribute(root, 'thisObject', null)
+		root.delegate = null
 		
 		def baos = new ByteArrayOutputStream()
 		def oos = new ObjectOutputStream(baos)
-		oos.writeObject(cloned)
+		oos.writeObject(closure)
 		oos.close()
 		
 		baos.toByteArray()
