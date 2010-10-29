@@ -16,7 +16,7 @@
 package groovyx.remote.client
 
 import groovyx.remote.Command
-import groovyx.remote.util.ClosureUtils
+import org.codehaus.groovy.runtime.CurriedClosure
 
 /**
  * Generates command objects from closures.
@@ -44,8 +44,17 @@ class CommandGenerator {
 		)
 	}
 	
-	protected getRootClosure(Closure closure) {
-		ClosureUtils.getRootClosure(closure)
+	/**
+	 * Gets the generated closure instance that is underneath the potential layers of currying.
+	 * 
+	 * If the given cls
+	 */
+	protected Closure getRootClosure(Closure closure) {
+		def root = closure
+		while (root instanceof CurriedClosure) {
+			root = root.owner
+		}
+		root
 	}
 	
 	protected List<byte[]> getSupportingClassesBytes(Class closureClass) {
