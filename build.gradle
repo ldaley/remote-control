@@ -34,7 +34,7 @@ def publishedModules = [
 
 subprojects {
 	version = '0.1-SNAPSHOT'
-	group = 'org.codehaus.groovy.remote'
+	group = 'org.codehaus.groovy.modules.remote'
 	
 	apply plugin: "org.gradle.idea"
 		
