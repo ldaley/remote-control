@@ -33,6 +33,9 @@ class CommandGenerator {
 		this.classLoader = classLoader ?: Thread.currentThread().contextClassLoader
 	}
 	
+	/**
+	 * For the given closure, generate a command object.
+	 */
 	Command generate(Closure closure) {
 		def cloned = closure.clone()
 		def root = getRootClosure(cloned)
@@ -47,7 +50,7 @@ class CommandGenerator {
 	/**
 	 * Gets the generated closure instance that is underneath the potential layers of currying.
 	 * 
-	 * If the given cls
+	 * If the given closure is the root closure it is returned.
 	 */
 	protected Closure getRootClosure(Closure closure) {
 		def root = closure
@@ -57,10 +60,19 @@ class CommandGenerator {
 		root
 	}
 	
+	/**
+	 * Gets the class definition bytes of any closures classes that are used by the
+	 * given closure class.
+	 * 
+	 * @see InnerClosureClassDefinitionsFinder
+	 */
 	protected List<byte[]> getSupportingClassesBytes(Class closureClass) {
 		new InnerClosureClassDefinitionsFinder(classLoader).find(closureClass)
 	}
 	
+	/**
+	 * Gets the class definition bytes for the given closure class.
+	 */
 	protected byte[] getClassBytes(Class closureClass) {
 		def classFileResource = classLoader.findResource(getClassFileName(closureClass))
 		if (classFileResource == null) {
@@ -74,7 +86,18 @@ class CommandGenerator {
 		closureClass.name.replace('.', '/') + ".class"
 	}
 	
-	protected serializeInstance(Closure closure, Closure root) {
+	/**
+	 * Serialises the closure taking care to remove the owner, thisObject and delegate.
+	 * 
+	 * The given closure may be curried which is why we need the "root" closure because
+	 * it has the owner etc. 
+	 * 
+	 * closure and root will be the same object if closure is not curried.
+	 * 
+	 * @param closure the target closure to serialise
+	 * @param root the actual generated closure that contains the implementation.
+	 */
+	protected byte[] serializeInstance(Closure closure, Closure root) {
 		Closure.metaClass.setAttribute(root, 'owner', null)
 		Closure.metaClass.setAttribute(root, 'thisObject', null)
 		root.delegate = null
