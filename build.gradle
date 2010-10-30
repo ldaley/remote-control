@@ -29,7 +29,7 @@ def groovyModules = [
 ]
 
 def publishedModules = [
-	":module:remote-core", ":module:remote-transport-local"
+	":module:remote-core", ":module:remote-transport-local", ":module:remote-transport-http"
 ]
 
 subprojects {
