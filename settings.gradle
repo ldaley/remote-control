@@ -1,3 +1,5 @@
 include "module:remote-core", 
         "module:remote-transport-local",
-        "module:remote-transport-http"
+        "module:remote-transport-http",
+        "doc:manual",
+        "doc:site"
