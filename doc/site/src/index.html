@@ -7,6 +7,16 @@
 <meta name="keywords" content="keywords"/> 
 <meta name="author" content="author"/> 
 <link rel="stylesheet" type="text/css" href="default.css" media="screen"/>
+<link href="http://alexgorbatchev.com/pub/sh/current/styles/shThemeEclipse.css" rel="stylesheet" type="text/css" />
+<script src="http://alexgorbatchev.com/pub/sh/current/scripts/shCore.js" type="text/javascript"></script>
+<script src="http://alexgorbatchev.com/pub/sh/current/scripts/shBrushGroovy.js" type="text/javascript"></script>
+<script src="http://alexgorbatchev.com/pub/sh/current/scripts/shBrushXml.js" type="text/javascript"></script>
+<script src="http://alexgorbatchev.com/pub/sh/current/scripts/shAutoloader.js" type="text/javascript"></script>
+<script type="text/javascript" charset="utf-8">
+    SyntaxHighlighter.defaults['toolbar'] = false;
+    SyntaxHighlighter.defaults['class-name'] = 'highlighter';
+    SyntaxHighlighter.all();
+</script>
 <title>Groovy Remotes</title>
 </head>
 
@@ -21,10 +31,8 @@
 			<h2>Execute closures in remote systems</h2>
 		</div>
 
-		<a href="index.html">Vestibulum</a>
-		<a href="index.html">Suspendisse</a>
-		<a href="index.html">Elemen</a>
-		<a href="index.html">Maecenas</a>
+		<a href="manual/groovy-api/remote-core/index.html">API</a>
+		<a href="manual/index.html">Manual</a>
 		<div class="clearer"><span></span></div>
 
 	</div>
@@ -33,35 +41,48 @@
 
 	<div class="holder">
 
-		<h1>Porttitor posuere</h1>
-		<p>In hac habitasse platea dictumst. Duis porttitor. Sed vulputate elementum nisl. Vivamus et mi at arcu mattis iaculis. Nullam posuere tristique tortor. In bibendum. Aenean ornare, <a href="index.html">nunc eget pretium</a> porttitor, sem est pretium leo, non euismod nulla dui non diam. Pellentesque dictum faucibus leo. Vestibulum ac ante. Sed in est.</p>
-
-		<cite>Sed sodales nisl sit amet augue. Donec ultrices, augue ullamcorper posuere laoreet, turpis massa tristique justo, sed egestas metus magna sed purus.</cite>
+		<h1>About</h1>
+		<p>Groovy remote control is a library for executing closures defined in a client application in a server application.</p>
 		
-		<p>Aliquam risus justo, mollis in, laoreet a, consectetuer nec, risus. Nunc blandit sodales lacus. Nam luctus semper mi. In eu diam.</p>
+		<h2>Example</h2>
+		<p>The following illustrates usage of the http transport.</p>
+		<h3>Client Side</h3>
+		<pre class="brush: groovy">import groovyx.remote.client.RemoteControl
+import groovyx.remote.transport.http.HttpTransport
 
-		<p>Fusce porta pede nec eros. Maecenas ipsum sem, interdum non, aliquam vitae, interdum nec, metus. Maecenas ornare lobortis risus. Etiam placerat varius mauris. Maecenas viverra. Sed feugiat. Donec mattis <a href="index.html">quam aliquam</a> risus. Nulla non felis sollicitudin urna blandit egestas. Integer et libero varius pede tristique ultricies. Cras nisl. Proin quis massa semper felis euismod ultricies.
-		</p>
+// defines how to talk to the server
+def transport = new HttpTransport("http://localhost:8080/groovy-remote-control")
 
-		<h1>Adipiscing</h1>
-		<p>Aliquam risus justo, mollis in, laoreet a, consectetuer nec, risus. Nunc blandit sodales lacus. Nam luctus semper mi. In eu diam. Phasellus rutrum elit vel nisi. Cras mauris nulla, egestas quis, cursus at, venenatis ac, ante. Fusce accumsan enim et arcu. Duis sagittis libero at lacus. Suspendisse lacinia nulla eget urna.</p>
-		<ul>
-			<li>Tristique</li>
-			<li>Aenean</li>
-			<li>Pretium</li>
-		</ul>
-		<p>In hac habitasse platea dictumst. Duis porttitor. Sed vulputate elementum nisl. Vivamus et mi at arcu mattis iaculis. Nullam posuere tristique tortor. In bibendum. Aenean ornare, nunc eget pretium porttitor, sem est pretium leo, non euismod nulla dui non diam. Pellentesque dictum faucibus leo. Vestibulum ac ante. Sed in est. Sed sodales nisl sit amet augue. Donec ultrices, augue ullamcorper posuere laoreet, turpis massa tristique justo, sed egestas metus magna sed purus. Fusce eleifend, dui ut posuere auctor, justo elit posuere sapien, at blandit enim quam fringilla mi.</p>
+// our agent for remote execution
+def remote = new RemoteControl(transport)
 
-		<h1>Interdum</h1>
-		<p>Praesent nisi sem, bibendum in, ultrices sit amet, euismod sit amet, dui. Donec varius tincidunt nisi. Ut ut sapien. Integer porta. Fusce nibh. Curabitur pellentesque, lectus at <a href="index.html">volutpat interdum</a>, sem justo placerat elit, eget feugiat est leo tempor quam. Ut quis neque convallis magna consequat molestie. Nullam semper massa eget ligula. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Pellentesque a nibh quis nunc volutpat aliquam</p>
-		<code>margin-bottom: 12px;
-font: normal 1.1em "Lucida Sans Unicode",serif;
-background: url(img/quote.gif) no-repeat;
-padding-left: 28px;
-color: #555;</code>
-		<p>Eget feugiat est leo tempor quam. Ut quis neque convallis magna consequat molestie.</p>
 
+// The return value of the closure is returned to the client
+assert remote.exec { 1 } == 1
+
+// Multiple closures can be executed in a chain, with the result of the previous passed to the next
+assert remote.exec({ 1 }, { it + 1 }, { it + 1 }) == 3</pre>
+		<h3>Server Side</h3>
+		<pre class="brush: groovy">import com.sun.net.httpserver.HttpServer
+import groovyx.remote.transport.http.RemoteControlHttpHandler
+import groovyx.remote.server.Receiver
+
+// the receiver of remote commands
+def receiver = new Receiver()
+
+// our handler (specific to the httpserver package)
+def handler = new RemoteControlHttpHandler(receiver)
+
+def server = HttpServer.create(new InetSocketAddress(8080))
+server.createContext("/groovy-remote-control", handler)
+server.start()</pre>
+
+    <h1>Issues &amp; Support</h1>
+	<p>There is currently no issue tracker, please use the <a href="http://xircles.codehaus.org/lists/user@groovy.codehaus.org">Groovy user email list</a> to discuss issues.</p>
+	
 	</div>
+	
+	
 
 	<div class="footer">
 		

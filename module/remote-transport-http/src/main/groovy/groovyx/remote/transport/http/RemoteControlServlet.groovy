@@ -19,8 +19,15 @@ import javax.servlet.*
 import javax.servlet.http.*
 import groovyx.remote.*
 import groovyx.remote.server.*
+import javax.servlet.ServletConfig
 
 class RemoteControlServlet extends HttpServlet {
+	
+	Receiver receiver 
+	
+	void init(ServletConfig config) {
+		receiver = createReceiver()
+	}
 	
 	void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		if (request.contentType != ContentType.COMMAND.value) {

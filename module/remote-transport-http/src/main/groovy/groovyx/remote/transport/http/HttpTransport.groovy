@@ -37,6 +37,13 @@ class HttpTransport implements Transport {
 	}
 
 	/**
+	 * @param receiverAddress the full address to the remote receiver
+	 */
+	HttpTransport(String receiverAddress) {
+		this(receiverAddress, Thread.currentThread().contextClassLoader)
+	}
+
+	/**
 	 * Serialises the Command and sends it over HTTP, returning the Result.
 	 * 
 	 * @throws IOException if there is any issue with the receiver.
@@ -48,8 +55,8 @@ class HttpTransport implements Transport {
 			instanceFollowRedirects = true
 			doOutput = true
 			
-			writeCommandChain(commandChain, outputStream)
-			readResult(inputStream, classLoader)
+			commandChain.writeTo(outputStream)
+			Result.readFrom(inputStream, classLoader)
 		}
 	}
 	

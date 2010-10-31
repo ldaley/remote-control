@@ -32,6 +32,8 @@ def publishedModules = [
 	":module:remote-core", ":module:remote-transport-local", ":module:remote-transport-http"
 ]
 
+def publishedGroovyModules = groovyModules.findAll { it in publishedModules }
+
 subprojects {
 	version = '0.1-SNAPSHOT'
 	group = 'org.codehaus.groovy.modules.remote'
@@ -131,6 +133,7 @@ project(':module:remote-transport-http') {
 	dependencies {
 		compile project(":module:remote-core"),
 		        "javax.servlet:servlet-api:2.4"
+		testCompile "org.mortbay.jetty:jetty:6.1.21"
 	}
 }
 
@@ -147,6 +150,23 @@ project(":doc:manual") {
 	task compile << {
 		new markdown2book.Generator(src, output, "UTF-8").generate()
 	}
+	
+	task copyGroovyDoc(dependsOn: publishedGroovyModules.collect { project(it) }*.groovydoc) << {
+		def groovyApi = new File(output, "groovy-api")
+		if (!groovyApi.exists()) {
+			assert groovyApi.mkdirs()
+		}
+		
+		publishedGroovyModules.collect { module ->
+			def baseName = module[module.lastIndexOf(":") + 1 .. module.size() - 1]
+			copy {
+				from project(module).groovydoc.destinationDir
+				into new File(groovyApi, baseName)
+			}
+		}
+	}
+	
+	task assemble(dependsOn: [compile, copyGroovyDoc], overwrite: true) {}
 }
 
 project(":doc:site") {
@@ -162,7 +182,7 @@ project(":doc:site") {
 		}
 	}
 	
-	task includeManual(dependsOn: project(":doc:manual").compile, type: Sync) {
+	task includeManual(dependsOn: project(":doc:manual").assemble, type: Sync) {
 		from project(":doc:manual").output
 		into project.thisManual
 		
@@ -180,7 +200,7 @@ project(":doc:site") {
 	
 	task upload(dependsOn: compile) << {
 		if (project.hasProperty('codehausUsername') && project.hasProperty('codehausPassword')) {
-			def rep = new org.apache.maven.wagon.repository.Repository("codehaus", "https://dav.codehaus.org/gmod/remote")
+			def rep = new org.apache.maven.wagon.repository.Repository("codehaus", "https://dav.codehaus.org/groovy/modules/remote")
 			def auth = new org.apache.maven.wagon.authentication.AuthenticationInfo()
 			auth.userName = codehausUsername
 			auth.password = codehausPassword

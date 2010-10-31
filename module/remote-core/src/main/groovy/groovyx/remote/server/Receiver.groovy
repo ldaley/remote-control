@@ -121,8 +121,8 @@ class Receiver {
 	 * @param input A stream containing a serialised CommandChain object.
 	 * @param output The stream that the Result object shall be written to.
 	 */
-	void execute(InputStream input, OutputStream output) {
-		invokeCommandChain(CommandChain.readFrom(input, classLoader)).writeTo(output)
+	void execute(InputStream command, OutputStream result) {
+		invokeCommandChain(CommandChain.readFrom(command, classLoader)).writeTo(result)
 	}
 	
 	protected Result invokeCommandChain(CommandChain commandChain) {

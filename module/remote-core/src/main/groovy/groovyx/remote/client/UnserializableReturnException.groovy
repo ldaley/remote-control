@@ -19,8 +19,11 @@ import groovyx.remote.*
 
 class UnserializableReturnException extends RemoteControlException {
 
+	final String stringRepresentation
+	
 	UnserializableReturnException(Result result) {
 		super("The return value of the command was not serializable, it's string representation was '$result.stringRepresentation'")
+		this.stringRepresentation = result.stringRepresentation
 	}
 
 }

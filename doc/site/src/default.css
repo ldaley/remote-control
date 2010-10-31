@@ -39,16 +39,6 @@ li {
 	list-style: url(img/li.gif);
 	margin-left: 18px;
 }
-code {
-	background: url(img/bgcode.gif);
-	border: 1px solid #F6F6F6;
-	color: #666;
-	display: block;
-	font: normal 1.1em "Lucida Sans Unicode",serif;
-	margin-bottom: 12px;
-	padding: 8px 10px;
-	white-space: pre;
-}
 cite {
 	background: url(img/quote.gif) no-repeat;
 	color: #456;
@@ -58,7 +48,8 @@ cite {
 }
 h1,h2,h3 {
 	color: #579;
-	padding-top: 6px;
+	padding-top: 12px;
+	margin-bottom: 6px;
 }
 
 /* misc */
@@ -77,6 +68,9 @@ h1,h2,h3 {
 	width: 730px;
 }
 
+.syntaxhighlighter .container {
+	width: 600px;
+}
 /* title */
 .title {
 	float: left;
@@ -136,3 +130,8 @@ h1,h2,h3 {
 }
 .footer .right, .footer .right a {color: #AAA;}
 .footer .right a:hover {color: #666;}
+
+div.line {
+	height: 15px;
+	padding-left: 8px;
+}

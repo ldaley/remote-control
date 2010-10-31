@@ -1,0 +1,10 @@
+[contexts]: contexts.html
+[receiver-api]: groovy-api/remote-core/groovyx/remote/server/Receiver.html
+[receiver-constructors-api]: groovy-api/remote-core/groovyx/remote/server/Receiver.html#constructor_detail
+[contextfactory-api]: groovy-api/remote-core/groovyx/remote/server/ContextFactory.html
+[storagecontextfactory-api]: groovy-api/remote-core/groovyx/remote/server/StorageContextFactory.html
+[storage-api]: groovy-api/remote-core/groovyx/remote/server/Storage.html
+[localtransport-api]: groovy-api/remote-transport-local/groovyx/remote/transport/local/LocalTransport.html
+[transport-api]: groovy-api/remote-core/groovyx/remote/client/Transport.html
+[httptransport-api]: groovy-api/remote-transport-http/groovyx/remote/transport/http/HttpTransport.html
+[httpservlet-api]: groovy-api/remote-transport-http/groovyx/remote/transport/http/RemoteControlServlet.html
