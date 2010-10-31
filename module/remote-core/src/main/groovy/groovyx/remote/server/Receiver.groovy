@@ -17,31 +17,124 @@ package groovyx.remote.server
 
 import groovyx.remote.*
 
-
+/**
+ * Receives a serialised command chain as an input stream to be unserialised and executed, then
+ * writes the serialised result to an output stream.
+ */
 class Receiver {
 	
 	final ClassLoader classLoader
+	final ContextFactory contextFactory
 	
-	Receiver(ClassLoader classLoader) {
+	/**
+	 * @param classLoader the class loader that will be used when unserialising the command chain
+	 * @param contextFactory the context factory to use to create contexts for command chains
+	 * 
+	 * @see ContextFactory
+	 */
+	Receiver(ClassLoader classLoader, ContextFactory contextFactory) {
 		this.classLoader = classLoader
+		this.contextFactory = contextFactory
+	}
+
+	/**
+	 * Creates a receiever that uses the current threads context class loader and the given contextFactory.
+	 * 
+	 * @param contextFactory the context factory to use to create contexts for command chains
+	 * 
+	 * @see Receiver(ClassLoader, ContextFactory)
+	 */
+	Receiver(ContextFactory contextFactory) {
+		this(Thread.currentThread().contextClassLoader, contextFactory)
 	}
 	
+	/**
+	 * Implicitly creates a StorageContextFactory that uses no initial values.
+	 * 
+	 * @param classLoader the class loader that will be used when unserialising the command chain
+	 * 
+	 * @see StorageContextFactory#withEmptyStorage()
+	 */
+	Receiver(ClassLoader classLoader) {
+		this(classLoader, StorageContextFactory.withEmptyStorage())
+	}
+
+	/**
+	 * Creates a receiever that uses the current threads context class loader and 
+	 * a StorageContextFactory that uses no initial values.
+	 * 
+	 * @see Receiver(ClassLoader)
+	 */
+	Receiver() {
+		this(Thread.currentThread().contextClassLoader)
+	}
+
+	/**
+	 * Implicitly creates a StorageContextFactory that uses the given map as a seed.
+	 * 
+	 * @param classLoader the class loader that will be used when unserialising the command chain
+	 * @param contextStorageSeed the seed for the storage
+	 * @see StorageContextFactory#withSeed(Map)
+	 */
+	Receiver(ClassLoader classLoader, Map contextStorageSeed) {
+		this(classLoader, StorageContextFactory.withSeed(contextStorageSeed))
+	}
+
+	/**
+	 * Creates a receiever that uses the current threads context class loader and 
+	 * a StorageContextFactory with the given map as the seed.
+	 * 
+	 * @param contextStorageSeed the seed for the storage
+	 * 
+	 * @see Receiver(ClassLoader, Map)
+	 */
+	Receiver(Map contextStorageSeed) {
+		this(Thread.currentThread().contextClassLoader, contextStorageSeed)
+	}
+
+	/**
+	 * Implicitly creates a StorageContextFactory that uses the given closure as a generator.
+	 * 
+	 * @param classLoader the class loader that will be used when unserialising the command chain
+	 * 
+	 * @see StorageContextFactory#withGenerator(Closure)
+	 */
+	Receiver(ClassLoader classLoader, Closure contextStorageGenerator) {
+		this(classLoader, StorageContextFactory.withGenerator(contextStorageGenerator))
+	}
+
+	/**
+	 * Creates a receiever that uses the current threads context class loader and 
+	 * a StorageContextFactory with the given closure as the generator.
+	 * 
+	 * @param contextStorageSeed the seed for the storage
+	 * 
+	 * @see Receiver(ClassLoader, Closure)
+	 */
+	Receiver(Closure contextStorageGenerator) {
+		this(Thread.currentThread().contextClassLoader, contextStorageGenerator)
+	}
+	
+	/**
+	 * Executes a serialised command chain.
+	 * 
+	 * @param input A stream containing a serialised CommandChain object.
+	 * @param output The stream that the Result object shall be written to.
+	 */
 	void execute(InputStream input, OutputStream output) {
-		def commandChain = CommandChain.readFrom(input, classLoader)
-		invokeCommandChain(commandChain).writeTo(output)
+		invokeCommandChain(CommandChain.readFrom(input, classLoader)).writeTo(output)
 	}
 	
 	protected Result invokeCommandChain(CommandChain commandChain) {
-		new CommandChainInvoker(classLoader, commandChain).invokeAgainst(createCommandDelegate())
+		createInvoker(classLoader, commandChain).invokeAgainst(createContext(commandChain))
 	}
 	
-	protected createCommandDelegate() {
-		new StorageCommandDelegate(createStorageCommandDelegateSeed())
+	protected createInvoker(ClassLoader classLoader, CommandChain commandChain) {
+		new CommandChainInvoker(classLoader, commandChain)
 	}
 	
-	protected Map createStorageCommandDelegateSeed() {
-		[a: "1"]
+	protected createContext(CommandChain commandChain) {
+		contextFactory.getContext(commandChain)
 	}
 	
 }
-

@@ -21,24 +21,21 @@ import groovyx.remote.client.Transport
 
 class LocalTransport implements Transport {
 
-	final serverClassLoader
-	final clientClassLoader
+	final ClassLoader classLoader
+	final Receiver receiver
 	
-	LocalTransport(ClassLoader serverClassLoader, ClassLoader clientClassLoader) {
-		this.serverClassLoader = serverClassLoader
-		this.clientClassLoader = clientClassLoader
+	LocalTransport(Receiver receiver, ClassLoader classLoader) {
+		this.receiver = receiver
+		this.classLoader = classLoader
 	}
 
 	Result send(CommandChain commandChain) throws IOException {
 		def commandBytes = new ByteArrayOutputStream()
 		commandChain.writeTo(commandBytes)
+		
 		def resultBytes = new ByteArrayOutputStream()
-		createReceiver().execute(new ByteArrayInputStream(commandBytes.toByteArray()), resultBytes)
-		Result.readFrom(new ByteArrayInputStream(resultBytes.toByteArray()), clientClassLoader)
-	}
+		receiver.execute(new ByteArrayInputStream(commandBytes.toByteArray()), resultBytes)
 	
-	protected Receiver createReceiver() {
-		new Receiver(serverClassLoader)
+		Result.readFrom(new ByteArrayInputStream(resultBytes.toByteArray()), classLoader)
 	}
-	
 }

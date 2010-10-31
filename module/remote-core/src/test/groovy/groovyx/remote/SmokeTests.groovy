@@ -18,6 +18,7 @@ package groovyx.remote
 
 import groovyx.remote.client.RemoteException
 import groovyx.remote.client.UnserializableReturnException
+import groovyx.remote.server.Receiver
 import groovyx.remote.transport.local.LocalTransport
 
 /**
@@ -47,7 +48,10 @@ class SmokeTests extends GroovyTestCase {
 		def thisClassLoader = getClass().classLoader
 		def neededURLsForServer = thisClassLoader.getURLs().findAll { it.path.contains("groovy-all") }
 		def serverClassLoader = new URLClassLoader(neededURLsForServer as URL[], thisClassLoader.parent)
-		def transport = new LocalTransport(serverClassLoader, thisClassLoader)
+		
+		def receiver = new Receiver(serverClassLoader)
+		def transport = new LocalTransport(receiver, thisClassLoader)
+		
 		remote = new RemoteControl(transport, thisClassLoader)
 	}
 	

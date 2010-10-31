@@ -21,11 +21,11 @@ import groovyx.remote.util.*
 /**
  * Used for abitrary name/value storage, but throws MPE on get of non existant property.
  */
-class StorageCommandDelegate {
+class Storage {
 
 	private final storage
 	
-	StorageCommandDelegate(Map storage) {
+	Storage(Map storage) {
 		this.storage = storage
 	}
 	
@@ -33,7 +33,7 @@ class StorageCommandDelegate {
 		if (storage.containsKey(name)) {
 			storage[name]
 		} else {
-			throw new MissingPropertyException("No property named '$name' is associated with the command delegate".toString())
+			throw new MissingPropertyException("No property named '$name' is is available in the context".toString())
 		}
 	}
 
