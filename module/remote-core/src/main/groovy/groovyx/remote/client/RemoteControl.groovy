@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package groovyx.remote
+package groovyx.remote.client
 
-import groovyx.remote.client.*
+import groovyx.remote.*
 
 /**
  * Executes closures in a server, communicating via a Transport.

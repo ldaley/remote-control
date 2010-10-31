@@ -15,8 +15,6 @@
  */
 package groovyx.remote.client
 
-import groovyx.remote.*
-
 class RemoteException extends RemoteControlException {
 
 	RemoteException(Throwable remote) {
