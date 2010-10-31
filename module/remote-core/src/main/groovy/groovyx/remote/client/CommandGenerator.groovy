@@ -26,11 +26,11 @@ class CommandGenerator {
 	final ClassLoader classLoader
 
 	CommandGenerator() {
-		this(null)
+		this(Thread.currentThread().contextClassLoader)
 	}
 	
 	CommandGenerator(ClassLoader classLoader) {
-		this.classLoader = classLoader ?: Thread.currentThread().contextClassLoader
+		this.classLoader = classLoader
 	}
 	
 	/**

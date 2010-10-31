@@ -17,42 +17,44 @@ package groovyx.remote
 
 import groovyx.remote.client.*
 
+/**
+ * Executes closures in a server, communicating via a Transport.
+ */
 class RemoteControl {
 	
 	final Transport transport
-	final ClassLoader classLoader
-	
-	protected final commandGenerator
-	
+	protected final CommandGenerator commandGenerator
+
+	/**
+	 * Creates a remote using the given transport and the current thread's contextClassLoader.
+	 * 
+	 * @see RemoteControl(Transport, ClassLoader)
+	 */
+	RemoteControl(Transport transport) {
+		this(transport, Thread.currentThread().contextClassLoader)
+	}
+
+	/**
+	 * Creates a remote using the given transport and the given classLoader.
+	 */
 	RemoteControl(Transport transport, ClassLoader classLoader) {
-		this.transport = transport
-		this.classLoader = classLoader
-		this.commandGenerator = new CommandGenerator(classLoader)
-	}
-	
-	def exec(Closure[] commands) {
-		def result = sendCommandChain(generateCommandChain(commands))
-		
-		if (result.wasNull) {
-			null
-		} else if (result.wasUnserializable) {
-			throw new UnserializableReturnException(result)
-		} else if (result.wasThrown) {
-			throw new RemoteException(result.value)
-		} else {
-			result.value
-		}
-	}
-		
-	def call(Closure[] commands) {
-		exec(commands)
+		this(transport, new CommandGenerator(classLoader))
 	}
 	
 	/**
-	 * Convenience method
+	 * Hook for subclasses to provide a custom command generator.
 	 */
-	static execute(Closure[] commands) {
-		new RemoteControl().exec(commands)
+	protected RemoteControl(Transport transport, CommandGenerator commandGenerator) {
+		this.transport = transport
+		this.commandGenerator = commandGenerator
+	}
+	
+	def exec(Closure[] commands) {
+		processResult(sendCommandChain(generateCommandChain(commands)))
+	}
+	
+	def call(Closure[] commands) {
+		exec(commands)
 	}
 	
 	protected CommandChain generateCommandChain(Closure[] commands) {
@@ -63,4 +65,15 @@ class RemoteControl {
 		transport.send(commandChain)
 	}
 	
+	protected processResult(Result result) {
+		if (result.wasNull) {
+			null
+		} else if (result.wasUnserializable) {
+			throw new UnserializableReturnException(result)
+		} else if (result.wasThrown) {
+			throw new RemoteException(result.value)
+		} else {
+			result.value
+		}
+	}
 }
