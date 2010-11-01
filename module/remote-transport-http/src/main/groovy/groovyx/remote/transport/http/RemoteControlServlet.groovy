@@ -21,6 +21,9 @@ import groovyx.remote.*
 import groovyx.remote.server.*
 import javax.servlet.ServletConfig
 
+/**
+ * A servlet implementation for receiving commands.
+ */
 class RemoteControlServlet extends HttpServlet {
 	
 	Receiver receiver 
@@ -36,9 +39,22 @@ class RemoteControlServlet extends HttpServlet {
 		}
 
 		response.contentType = ContentType.RESULT.value
-		receiver.execute(request.inputStream, response.outputStream)
+		
+		doExecute(request.inputStream, response.outputStream)
 	}
 
+	/**
+	 * Hook for subclasses to wrap the actual execution.
+	 */
+	protected void doExecute(InputStream input, OutputStream output) {
+		receiver.execute(input, output)
+	}
+	
+	/**
+	 * Hook for subclasses to provide a custom receiver. Will be called during init().
+	 * 
+	 * This implement returns a receiver created via the default constructor.
+	 */
 	protected Receiver createReceiver() {
 		new Receiver()
 	}
