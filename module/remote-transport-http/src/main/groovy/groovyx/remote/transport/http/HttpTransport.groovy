@@ -18,6 +18,7 @@ package groovyx.remote.transport.http
 import groovyx.remote.*
 import groovyx.remote.util.*
 import groovyx.remote.client.Transport
+import java.net.HttpURLConnection
 
 /**
  * Transports commands over http to the given receiver address.
@@ -55,12 +56,26 @@ class HttpTransport implements Transport {
 			instanceFollowRedirects = true
 			doOutput = true
 			
+			configureConnection(delegate)
+			
 			commandChain.writeTo(outputStream)
 			Result.readFrom(inputStream, classLoader)
 		}
 	}
 	
-	def openConnection() {
+	/**
+	 * Subclass hook for configuring the connection object before the request is set.
+	 * 
+	 * This could be used to implement authentication.
+	 */
+	protected configureConnection(HttpURLConnection connection) {
+		
+	}
+	
+	/**
+	 * Creates a HttpURLConnection to the remote receiver at the given receiverAddress.
+	 */
+	protected HttpURLConnection openConnection() {
 		new URL(receiverAddress).openConnection()
 	}
 
