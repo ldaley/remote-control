@@ -91,10 +91,10 @@ subprojects {
 				project.deployer = repositories.mavenDeployer {
 					uniqueVersion = false
 					configuration = configurations.deployerJars
-					repository(url: "https://dav.codehaus.org/repository/gmod/") {
+					repository(url: "https://nexus.codehaus.org/service/local/staging/deploy/maven2") {
 						authentication(userName: codehausUsername, password: codehausPassword)
 					}
-					snapshotRepository(url: "https://dav.codehaus.org/snapshots.repository/gmod/") {
+					snapshotRepository(url: "https://nexus.codehaus.org/content/repositories/snapshots") {
 						authentication(userName: codehausUsername, password: codehausPassword)
 					}
 					pom.project {
