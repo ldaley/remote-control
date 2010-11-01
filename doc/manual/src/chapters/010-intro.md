@@ -42,8 +42,9 @@ Client side…
     def remote = new RemoteControl(transport)
     
     
+    // Do some math on the server
     // The return value of the closure is returned to the client
-    assert remote.exec { 1 } == 1
+    assert remote.exec { 1 + 1 } == 2
     
     // Multiple closures can be executed in a chain, with the result of the previous passed to the next
     assert remote.exec({ 1 }, { it + 1 }, { it + 1 }) == 3
