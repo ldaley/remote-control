@@ -37,7 +37,7 @@ class RemoteControl {
 	 * 
 	 * This prevents a UnserializableReturnException from being thrown.
 	 */
-	boolean useStringRepresentationIfResultWasUnserializable = false	
+	boolean useStringRepresentationIfResultWasUnserializable = false
 	
 	/**
 	 * Creates a remote using the given transport and the current thread's contextClassLoader.
