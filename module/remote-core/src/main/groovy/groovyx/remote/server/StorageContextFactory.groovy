@@ -52,8 +52,9 @@ abstract class StorageContextFactory implements ContextFactory {
 	}
 	
 	static private class WithSeed extends StorageContextFactory {
+		final Map seed
 		WithSeed(Map seed) {
-			this.seed = seed
+			this.seed = new LinkedHashMap(seed)
 		}
 		
 		def getContext(CommandChain chain) {
@@ -73,6 +74,7 @@ abstract class StorageContextFactory implements ContextFactory {
 	}
 
 	static private class WithGenerator extends StorageContextFactory {
+		final Closure generator
 		WithGenerator(Closure generator) {
 			this.generator = generator
 		}
