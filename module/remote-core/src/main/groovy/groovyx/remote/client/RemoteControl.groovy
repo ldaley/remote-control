@@ -70,8 +70,8 @@ class RemoteControl {
 			null
 		} else if (result.wasUnserializable) {
 			throw new UnserializableReturnException(result)
-		} else if (result.wasThrown) {
-			throw new RemoteException(result.value)
+		} else if (result.thrown) {
+			throw new RemoteException(result.thrown)
 		} else {
 			result.value
 		}

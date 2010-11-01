@@ -37,7 +37,7 @@ class CommandChainInvoker {
 			lastResult = new CommandInvoker(parentLoader, command).invokeAgainst(delegate, arg)
 			
 			if (command != lastCommand) {
-				if (lastResult.wasThrown) {
+				if (lastResult.thrown) {
 					return lastResult
 				} else if (lastResult.wasUnserializable) {
 					// unserializable is ok when chaining

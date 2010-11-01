@@ -98,6 +98,15 @@ class SmokeTests extends GroovyTestCase {
 			remote.exec { System.out }
 		}
 	}
+
+	/**
+	 * If the command returns something that is unserialisable, we thrown an UnserializableReturnException
+	 */
+	void testNestedUnserialisableReturn() {
+		shouldFail(UnserializableReturnException) {
+			remote.exec { [out: System.out] }
+		}
+	}
 	
 	/**
 	 * If the command returns an exception but does not throw it, we just return the exception
