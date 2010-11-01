@@ -33,16 +33,39 @@ class RemoteControlServlet extends HttpServlet {
 	}
 	
 	void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		if (request.contentType != ContentType.COMMAND.value) {
-			response.sendError(415, "Only remote control commands can be sent")
-			return
+		if (validateRequest(request)) {
+			configureSuccessfulResponse(response)
+			doExecute(request.inputStream, response.outputStream)
 		}
-
-		response.contentType = ContentType.RESULT.value
-		
-		doExecute(request.inputStream, response.outputStream)
 	}
 
+	/**
+	 * Validate that this request is valid.
+	 * 
+	 * Subclasses should call this implementation before any custom validation.
+	 * 
+	 * If the request is invalid, this is the place to send back the appropriate headers/body.
+	 * 
+	 * @return true if the request is valid and should proceed, false if otherwise.
+	 */
+	protected boolean validateRequest(HttpServletRequest request) {
+		if (request.contentType != ContentType.COMMAND.value) {
+			response.sendError(415, "Only remote control commands can be sent")
+			return false
+		}
+		
+		true
+	}
+	
+	/**
+	 * Called when a request has been validated.
+	 * 
+	 * Subclasses should call this implementation to set the status code and return content type.
+	 */
+	protected void configureSuccessfulResponse(HttpServletResponse response) {
+		response.contentType = ContentType.RESULT.value
+	}
+	
 	/**
 	 * Hook for subclasses to wrap the actual execution.
 	 */
