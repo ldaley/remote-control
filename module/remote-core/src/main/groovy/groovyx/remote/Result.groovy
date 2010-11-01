@@ -39,18 +39,23 @@ class Result implements Serializable {
 	/**
 	 * If a throwable was thrown, this will be that throwable.
 	 */
-	Throwable thrown = null
+	transient Throwable thrown = null
+	
+	/**
+	 * The serialized version of what was thrown
+	 */
+	private byte[] serializedThrown = null
 	
 	/**
 	 * The raw serialized bytes of the value, if it was able to be serialised.
 	 */
-	byte[] serializedValue = null
+	private byte[] serializedValue = null
 	
 	/**
 	 * The value, if it was unable to be serialized.
 	 */
 	transient unserializable = null
-		
+	
 	/**
 	 * Stores the unserialized value when deserializing back at the client
 	 */
@@ -71,8 +76,17 @@ class Result implements Serializable {
 	}
 	
 	static forThrown(Throwable thrown) {
+		def serializedThrown
+		try {
+			serializedThrown = serialize(thrown)
+		} catch (NotSerializableException) {
+			thrown = new UnserializableExceptionException(thrown)
+			serializedThrown = serialize(thrown)
+		}
+		
 		new Result(
-			thrown: thrown
+			thrown: thrown,
+			serializedThrown: serializedThrown
 		)
 	}
 	
@@ -88,7 +102,7 @@ class Result implements Serializable {
 		try {
 			new Result(
 				value: serializable,
-				serializedValue: serializeValue(serializable),
+				serializedValue: serialize(serializable),
 				stringRepresentation: serializable.toString()
 			)
 		} catch (NotSerializableException e) {
@@ -96,7 +110,7 @@ class Result implements Serializable {
 		}
 	}
 	
-	private static serializeValue(Serializable serializable) {
+	private static serialize(Serializable serializable) {
 		def baos = new ByteArrayOutputStream()
 		def oos = new ObjectOutputStream(baos)
 		
@@ -119,8 +133,15 @@ class Result implements Serializable {
 	
 	protected hydrate(ClassLoader classLoader) {
 		if (serializedValue) {
-			this.value = new ClassLoaderConfigurableObjectInputStream(classLoader, new ByteArrayInputStream(serializedValue)).readObject()
+			this.value = deserialize(classLoader, serializedValue)
 		}
+		if (serializedThrown) {
+			this.thrown = deserialize(classLoader, serializedThrown)
+		}
+	}
+	
+	protected deserialize(ClassLoader classLoader, byte[] bytes) {
+		new ClassLoaderConfigurableObjectInputStream(classLoader, new ByteArrayInputStream(bytes)).readObject() 
 	}
 	
 	static Result readFrom(InputStream input, ClassLoader classLoader) {

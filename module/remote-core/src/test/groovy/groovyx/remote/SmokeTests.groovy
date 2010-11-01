@@ -16,6 +16,7 @@
 
 package groovyx.remote
 
+import groovyx.remote.UnserializableExceptionException
 import groovyx.remote.client.RemoteControl
 import groovyx.remote.client.RemoteException
 import groovyx.remote.client.UnserializableReturnException
@@ -104,10 +105,16 @@ class SmokeTests extends GroovyTestCase {
 	 */
 	void testNestedUnserialisableReturn() {
 		shouldFail(UnserializableReturnException) {
-			remote.exec { [out: System.out] }
+			remote.exec { [m: [out: System.out]] }
 		}
 	}
 
+	void testUnserializableExceptionsAreWrappedInUnserializableExceptionException() {
+		shouldFailWithCause(UnserializableExceptionException) {
+			remote.exec { throw new IncorrectClosureArgumentsException({ 1 }, [System.out], OutputStream)}
+		}
+	}
+	
 	void testCanSpecifyToUseNullIfReturnWasUnserializable() {
 		remote.useNullIfResultWasUnserializable = true
 		try {

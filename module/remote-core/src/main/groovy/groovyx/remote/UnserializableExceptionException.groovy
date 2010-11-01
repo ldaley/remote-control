@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package groovyx.remote.client
+package groovyx.remote
 
-class RemoteControlException extends RuntimeException {
+class UnserializableExceptionException extends RemoteControlException {
 
-	RemoteControlException(message, Throwable cause = null) {
-		super(message as String, cause)
+	UnserializableExceptionException(Throwable unserializable) {
+		super("wrapped unserializable exception: class = ${unserializable.class.name}, message = \"${unserializable.message}\"" as String)
+		this.stackTrace = unserializable.stackTrace
+		
+		if (unserializable.cause) {
+			initCause(new UnserializableExceptionException(unserializable.cause))
+		}
 	}
 
 }
