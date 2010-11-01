@@ -82,6 +82,16 @@ Exceptions thrown on the server are captured and returned to the client where th
 
 If the return value of the last command in the chain is not `Serializable`, a `groovyx.remote.client.UnserializableReturnException` is thrown. The `toString()` representation of the unserializable object is available as the `stringRepresentation` property on the exception.
 
+There are two flags that can be set on remote control objects to augment this behaviour (both default to false)
+
+#### useNullIfResultWasUnserializable
+
+If this `boolean` property is set to `true`, `null` will be returned to the client if the result of the command on the server was a value that could not be serialized.
+
+#### useStringRepresentationIfResultWasUnserializable
+
+If this `boolean` property is set to `true`, the `toString()` value of the result of the command on the server will be returned to the client if it could not be serialized.
+
 ### Accessing Lexical Scope
 
 Command closures can access lexically scoped variables, as long as they are serializable.

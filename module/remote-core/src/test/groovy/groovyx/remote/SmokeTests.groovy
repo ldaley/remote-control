@@ -107,6 +107,25 @@ class SmokeTests extends GroovyTestCase {
 			remote.exec { [out: System.out] }
 		}
 	}
+
+	void testCanSpecifyToUseNullIfReturnWasUnserializable() {
+		remote.useNullIfResultWasUnserializable = true
+		try {
+			assert remote.exec { System.out } == null 
+		} finally {
+			remote.useNullIfResultWasUnserializable = false
+		}
+	}
+
+	void testCanSpecifyToUseStringRepresentationIfReturnWasUnserializable() {
+		remote.useStringRepresentationIfResultWasUnserializable = true
+		try {
+			assert remote.exec { System.out }.contains("Stream")
+		} finally {
+			remote.useStringRepresentationIfResultWasUnserializable = false
+		}
+	}
+
 	
 	/**
 	 * If the command returns an exception but does not throw it, we just return the exception

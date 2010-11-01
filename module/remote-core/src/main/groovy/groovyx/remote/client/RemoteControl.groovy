@@ -26,6 +26,20 @@ class RemoteControl {
 	protected final CommandGenerator commandGenerator
 
 	/**
+	 * If set, {@code null} will be used as the return value if the actual return value was not serializable.
+	 * 
+	 * This prevents a UnserializableReturnException from being thrown.
+	 */
+	boolean useNullIfResultWasUnserializable = false
+
+	/**
+	 * If set, the string representation of the actual return value will be used if the actual return value was not serializable.
+	 * 
+	 * This prevents a UnserializableReturnException from being thrown.
+	 */
+	boolean useStringRepresentationIfResultWasUnserializable = false	
+	
+	/**
 	 * Creates a remote using the given transport and the current thread's contextClassLoader.
 	 * 
 	 * @see RemoteControl(Transport, ClassLoader)
@@ -69,7 +83,13 @@ class RemoteControl {
 		if (result.wasNull) {
 			null
 		} else if (result.wasUnserializable) {
-			throw new UnserializableReturnException(result)
+			if (useNullIfResultWasUnserializable) {
+				null
+			} else if (useStringRepresentationIfResultWasUnserializable) {
+				result.stringRepresentation
+			} else {
+				throw new UnserializableReturnException(result)
+			}
 		} else if (result.thrown) {
 			throw new RemoteException(result.thrown)
 		} else {
