@@ -78,6 +78,8 @@ Exceptions thrown on the server are captured and returned to the client where th
         assert remoteException.message == "bang!"
     }
 
+If the remote exception was not able to be serialized, it will be *wrapped* in a `groovyx.remote.UnserializableExceptionException`. This exception assumes the stack trace of the real exception and constructs a message based on the class and message of the real exception. 
+
 ### Unserializable Return Values
 
 If the return value of the last command in the chain is not `Serializable`, a `groovyx.remote.client.UnserializableReturnException` is thrown. The `toString()` representation of the unserializable object is available as the `stringRepresentation` property on the exception.
