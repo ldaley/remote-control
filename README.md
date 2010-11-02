@@ -1,5 +1,17 @@
-This is the beginning of separating the core functionality of the [grails-remote-control](http://github.com/alkemist/grails-remote-control) plugin out of Grails to make it available to all Groovy users.
+Please see [http://groovy.codehaus.org/modules/remote](http://groovy.codehaus.org/modules/remote "Groovy Remote Control") for information.
 
-In a nutshell, this library allows you to transmit closures to remote JVMs and execute them inside that JVM. There is a pluggable transport mechanism, with currently an implementation for http.
+## Build Instructions
 
-More information will be forthcoming.
+This project uses [Gradle](http://www.gradle.org/ "Home - Gradle") to build. You can use the gradle wrapper in the project to build.
+
+    ./gradlew test
+
+### Git Submodules
+
+This project will not build without initialising submodules. After you have cloned and checked out a branch, you must run
+
+    git submodule init
+
+And…
+
+    git submodule update
