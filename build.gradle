@@ -21,6 +21,7 @@ allprojects {
 	repositories {
 		mavenCentral()
 		mavenRepo name: "spock-snapshots", urls: ["http://m2repo.spockframework.org/snapshots"]
+		mavenRepo name: "markdown4j", urls: ["http://scala-tools.org/repo-releases"]
 	}
 }
 
