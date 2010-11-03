@@ -30,7 +30,6 @@ class InnerClosureClassDefinitionsFinder {
 		def packageDirPath = toPackageDirPath(clazz)
 		def innerClassPrefix = toInnerClassPrefix(clazz)
 		def innerClassPrefixWithPackage = packageDirPath + "/" + innerClassPrefix
-		def packagePrefix = clazz.package?.name + "." ?: ''
 
 		for (loader in calculateEffectiveClassLoaderHierarchy()) {
 			for (url in loader.getURLs()) {
