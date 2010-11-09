@@ -26,7 +26,7 @@ Server side…
     // our handler (specific to the httpserver package)
     def handler = new RemoteControlHttpHandler(receiver)
     
-    def server = HttpServer.create(new InetSocketAddress(8080))
+    def server = HttpServer.create(new InetSocketAddress(8080), 0)
     server.createContext("/groovy-remote-control", handler)
     server.start()
     
