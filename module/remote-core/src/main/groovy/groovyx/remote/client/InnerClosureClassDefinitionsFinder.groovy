@@ -34,7 +34,7 @@ class InnerClosureClassDefinitionsFinder {
 
 		for (loader in calculateEffectiveClassLoaderHierarchy()) {
 			for (url in loader.getURLs()) {
-				def root = new File(url.path)
+				def root = new File(url.toURI())
 				
 				if (root.directory) {
 					def packageDir = packageDirPath ? new File(root, packageDirPath) : root
