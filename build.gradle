@@ -43,6 +43,9 @@ subprojects {
 		
 	if (project.path in groovyModules) {
 		apply plugin: "groovy"
+		apply plugin: "code-quality"
+		
+		codeNarcConfigFileName = "${rootDir}/config/codenarc/codenarc.xml"
 		
 		dependencies {
 			groovy groovyDependency
@@ -76,9 +79,26 @@ subprojects {
 	
 	if (project.path in publishedModules) {
 		apply plugin: 'maven'
+		apply plugin: 'sign'
 		
+		task sourcesJar(type: Jar, dependsOn: classes) { 
+			classifier = 'sources' 
+			from sourceSets.main.allSource
+		} 
+
+		task javadocJar(type: Jar, dependsOn: javadoc) { 
+			classifier = 'javadoc' 
+			from javadoc.destinationDir 
+		} 
+
 		configurations {
+			meta
 			deployerJars
+		}
+
+		artifacts {
+			meta javadocJar
+			meta sourcesJar
 		}
 		
 		dependencies {
@@ -88,22 +108,45 @@ subprojects {
 		project.poms = [install.repositories.mavenInstaller.pom]
 		
 		if (project.hasProperty('codehausUsername') && project.hasProperty('codehausPassword')) {
+			uploadArchives.dependsOn sourcesJar, javadocJar
 			uploadArchives {
 				project.deployer = repositories.mavenDeployer {
+					beforeDeployment { MavenDeployment deployment ->
+						["sources", "javadoc"].each { type ->
+							deployment.addArtifact configurations.meta.artifacts.find { it.classifier == type }
+						}
+					}
 					uniqueVersion = false
 					configuration = configurations.deployerJars
-					repository(url: "https://dav.codehaus.org/repository/gmod/") {
+					repository(url: "https://nexus.codehaus.org/service/local/staging/deploy/maven2/") {
 						authentication(userName: codehausUsername, password: codehausPassword)
 					}
-					snapshotRepository(url: "https://dav.codehaus.org/snapsgrahots.repository/gmod/") {
+					snapshotRepository(url: "https://nexus.codehaus.org/content/repositories/snapshots/") {
 						authentication(userName: codehausUsername, password: codehausPassword)
 					}
 					pom.project {
+						name "Geb"
+						description "Groovy remote control is a library for executing closures defined in one Groovy application to be executed in a different (possible remote) Groovy application."
+						url "http://groovy.codehaus.org/modules/remote"
+						inceptionYear "2010"
 						licenses {
 							license {
 								name 'The Apache Software License, Version 2.0'
 								url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
 								distribution 'repo'
+							}
+						}
+						scm {
+							url "https://github.com/alkemist/groovy-remote"
+						}
+						developers {
+							developer {
+								id "ldaley"
+								name "Luke Daley"
+								roles {
+									role "Lead"
+									role "Founder"
+								}
 							}
 						}
 					}
@@ -220,4 +263,9 @@ project(":doc:site") {
 		}
 	}
 
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '0.9'
+	jarPath = 'gradle/wrapper'
 }

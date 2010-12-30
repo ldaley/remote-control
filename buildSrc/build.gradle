@@ -7,6 +7,7 @@ repositories {
 }
 
 dependsOn(":markdown2book:markdown2book", true)
+dependsOn(":huxi-gradle-plugins", true)
 
 dependencies { 
 	runtime \
