@@ -7,5 +7,6 @@
 
     <ruleset-ref path='rulesets/imports.xml' />
     <ruleset-ref path='rulesets/basic.xml' />
+    <ruleset-ref path='rulesets/size.xml' />
 
 </ruleset>

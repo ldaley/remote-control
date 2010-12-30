@@ -25,6 +25,7 @@ class InnerClosureClassDefinitionsFinder {
 		this.classLoader = classLoader
 	}
 	
+	@SuppressWarnings('NestedBlockDepth')
 	List<byte[]> find(Class<? extends Closure> clazz) {
 		def classes = []
 		def packageDirPath = toPackageDirPath(clazz)
