@@ -19,6 +19,8 @@ import groovyx.remote.util.ClassLoaderConfigurableObjectInputStream
 
 class Result implements Serializable {
 
+	static public final long serialVersionUID = 1L
+	
 	/**
 	 * If set, indicates that the result was null
 	 */

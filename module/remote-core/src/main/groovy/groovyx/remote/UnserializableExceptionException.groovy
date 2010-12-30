@@ -17,6 +17,8 @@ package groovyx.remote
 
 class UnserializableExceptionException extends RemoteControlException {
 
+	static public final long serialVersionUID = 1L
+	
 	UnserializableExceptionException(Throwable unserializable) {
 		super("wrapped unserializable exception: class = ${unserializable.class.name}, message = \"${unserializable.message}\"" as String)
 		this.stackTrace = unserializable.stackTrace

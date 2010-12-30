@@ -16,6 +16,9 @@
 package groovyx.remote
 
 class Command implements Serializable {
+	
+	static public final long serialVersionUID = 1L
+	
 	byte[] instance
 	byte[] root
 	List supports = []
