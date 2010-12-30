@@ -18,7 +18,6 @@ package groovyx.remote.transport.http
 import groovyx.remote.*
 import groovyx.remote.util.*
 import groovyx.remote.client.Transport
-import java.net.HttpURLConnection
 
 /**
  * Transports commands over http to the given receiver address.

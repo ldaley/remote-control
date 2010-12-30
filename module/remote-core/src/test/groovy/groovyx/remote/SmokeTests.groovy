@@ -16,7 +16,6 @@
 
 package groovyx.remote
 
-import groovyx.remote.UnserializableExceptionException
 import groovyx.remote.client.RemoteControl
 import groovyx.remote.client.RemoteException
 import groovyx.remote.client.UnserializableReturnException
