@@ -34,6 +34,11 @@ class InnerClosureClassDefinitionsFinder {
 
 		for (loader in calculateEffectiveClassLoaderHierarchy()) {
 			for (url in loader.getURLs()) {
+				if (url.protocol != "file") {
+					// we only support searching the filesystem right not
+					continue
+				}
+				
 				def root = new File(url.toURI())
 				if (!root.exists()) {
 					// may have been removed, just skip it

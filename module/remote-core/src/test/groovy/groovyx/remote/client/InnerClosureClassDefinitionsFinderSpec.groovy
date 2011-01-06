@@ -34,5 +34,15 @@ class InnerClosureClassDefinitionsFinderSpec extends Specification {
 		notThrown Exception
 	}
 	
+	def "non file classpath entries are ignored"() {
+		given:
+		def finder = createFinder("http://google.com")
+		
+		when:
+		finder.find({ 1 }.class)
+		
+		then:
+		notThrown Exception
+	}
 	
 }
