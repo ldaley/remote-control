@@ -36,7 +36,7 @@ def publishedModules = [
 def publishedGroovyModules = groovyModules.findAll { it in publishedModules }
 
 subprojects {
-	version = '0.2-SNAPSHOT'
+	version = '0.2'
 	group = 'org.codehaus.groovy.modules.remote'
 	
 	apply plugin: "org.gradle.idea"
