@@ -18,11 +18,14 @@ package groovyx.remote.client
 import spock.lang.*
 
 class InnerClosureClassDefinitionsFinderSpec extends Specification {
+
+	protected createFinder(String[] urls) {
+		new InnerClosureClassDefinitionsFinder(new URLClassLoader(urls.collect { new URL(it) } as URL[]))
+	}
 	
 	def "non existant class path entries are ignored"() {
 		given:
-		def urls = ["file:///idontexist.zip", "file:///idontexistdirectory"].collect { new URL(it) } as URL[]
-		def finder = new InnerClosureClassDefinitionsFinder(new URLClassLoader(urls))
+		def finder = createFinder("file:///idontexist.zip", "file:///idontexistdirectory")
 		
 		when:
 		finder.find({ 1 }.class)
