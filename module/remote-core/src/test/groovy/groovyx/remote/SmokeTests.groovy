@@ -281,4 +281,25 @@ class SmokeTests extends GroovyTestCase {
 		
 		remote.exec { new GregorianCalendar().invokeMethod(methodName, new Date()) }
 	}
+	
+	/**
+	 * For some reason that is currently unknown, you cannot call methods dynamically 
+	 * in command closures. It causes a NoClassDefFoundError. A workaround is to use
+	 * the invokeMethod() method of GroovyObject.
+	 */
+	void testCannotUseSpreadOperator() {
+		shouldFailWithCause(NoClassDefFoundError) {
+			remote.exec { [1,2,3]*.toString() }
+		}
+	}
+
+	/**
+	 * For some reason that is currently unknown, you cannot call methods dynamically 
+	 * in command closures. It causes a NoClassDefFoundError. A workaround is to use
+	 * the invokeMethod() method of GroovyObject.
+	 */
+	void testCanUseSpreadMapOperator() {
+		remote.exec {  new HashMap(*:[a: 1, b: 2]) }
+	}
+	
 }
