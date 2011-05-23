@@ -33,7 +33,7 @@ class RemoteControlServlet extends HttpServlet {
 	}
 	
 	void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		if (validateRequest(request)) {
+		if (validateRequest(request, response)) {
 			configureSuccessfulResponse(response)
 			doExecute(request.inputStream, response.outputStream)
 		}
@@ -48,7 +48,7 @@ class RemoteControlServlet extends HttpServlet {
 	 * 
 	 * @return true if the request is valid and should proceed, false if otherwise.
 	 */
-	protected boolean validateRequest(HttpServletRequest request) {
+	protected boolean validateRequest(HttpServletRequest request, HttpServletResponse response) {
 		if (request.contentType != ContentType.COMMAND.value) {
 			response.sendError(415, "Only remote control commands can be sent")
 			return false
