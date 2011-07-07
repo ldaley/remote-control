@@ -48,17 +48,21 @@ class HttpTransport implements Transport {
 	 * 
 	 * @throws IOException if there is any issue with the receiver.
 	 */
-	Result send(CommandChain commandChain) throws IOException {
-		openConnection().with {
-			setRequestProperty("Content-Type", ContentType.COMMAND.value)
-			setRequestProperty("accept", ContentType.RESULT.value)
-			instanceFollowRedirects = true
-			doOutput = true
-			
-			configureConnection(delegate)
-			
-			commandChain.writeTo(outputStream)
-			Result.readFrom(inputStream, classLoader)
+	Result send(CommandChain commandChain) throws RemoteControlException {
+		try {
+			openConnection().with {
+				setRequestProperty("Content-Type", ContentType.COMMAND.value)
+				setRequestProperty("accept", ContentType.RESULT.value)
+				instanceFollowRedirects = true
+				doOutput = true
+
+				configureConnection(delegate)
+
+				commandChain.writeTo(outputStream)
+				Result.readFrom(inputStream, classLoader)
+			}
+		} catch (Exception e) {
+			throw new RemoteControlException("Error sending command chain to '$receiverAddress'", e)
 		}
 	}
 	
