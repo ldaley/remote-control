@@ -18,8 +18,12 @@ package groovyx.remote
 class RemoteControlException extends RuntimeException {
 
 	static public final long serialVersionUID = 1L
-	
-	RemoteControlException(message, Throwable cause = null) {
+
+    RemoteControlException(message) {
+        super(message as String)
+    }
+
+	RemoteControlException(message, Throwable cause) {
 		super(message as String, cause)
 	}
 

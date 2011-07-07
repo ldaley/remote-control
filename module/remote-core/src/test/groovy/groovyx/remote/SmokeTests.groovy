@@ -113,7 +113,23 @@ class SmokeTests extends GroovyTestCase {
 			remote.exec { throw new IncorrectClosureArgumentsException({ 1 }, [System.out], OutputStream)}
 		}
 	}
-	
+
+    void testUnserializableExceptionWithCause() {
+        def cause = null
+        try {
+            remote.exec {
+                def e = new IncorrectClosureArgumentsException({ 1 }, [System.out], OutputStream)
+                e.initCause(new Exception('cause foo'))
+                throw e
+            }
+        } catch (RemoteException e) {
+            cause = e.cause.cause
+            assert cause.class == UnserializableExceptionException // also
+            assert cause.message.endsWith('message = "cause foo"')
+        }
+        assert cause
+    }
+
 	void testCanSpecifyToUseNullIfReturnWasUnserializable() {
 		remote.useNullIfResultWasUnserializable = true
 		try {
