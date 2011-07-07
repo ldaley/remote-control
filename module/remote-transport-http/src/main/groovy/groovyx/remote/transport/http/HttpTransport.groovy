@@ -71,6 +71,7 @@ class HttpTransport implements Transport {
 	 * 
 	 * This could be used to implement authentication.
 	 */
+	@SuppressWarnings("EmptyMethod")
 	protected configureConnection(HttpURLConnection connection) {
 		
 	}

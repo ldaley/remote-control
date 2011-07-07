@@ -48,7 +48,7 @@ class RemoteControlHttpHandlerSpec extends Specification {
 
 	def "test the handler"() {
 		expect:
-		remote.exec { 2 + 2 } == 4
+		remote.exec { def a = 2; a + 2 } == 4
 	}
 	
 	def cleanupSpec() {

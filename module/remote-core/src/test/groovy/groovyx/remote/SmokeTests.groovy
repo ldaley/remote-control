@@ -60,7 +60,7 @@ class SmokeTests extends GroovyTestCase {
 	 * The result of the command run on the server is sent back and is returned
 	 */
 	void testReturingValues() {
-		assert remote { 1 + 1 } == 2
+		assert remote { def a = 1; a + 1 } == 2
 	}
 		
 	/**
