@@ -20,7 +20,10 @@ class RemoteControlException extends RuntimeException {
 	static public final long serialVersionUID = 1L
 	
 	RemoteControlException(message, Throwable cause = null) {
-		super(message as String, cause)
+		super(message as String)
+		if (cause) {
+			initCause(cause)
+		}
 	}
 
 }
