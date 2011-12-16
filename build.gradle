@@ -1,13 +1,13 @@
 buildscript {
 	repositories {
 		mavenCentral()
-		mavenRepo (name: "Alkemists's GitHub", urls: "http://cloud.github.com/downloads/alkemist") {
+		mavenRepo (name: "Alkemists's GitHub", url: "http://cloud.github.com/downloads/alkemist") {
 			pattern = "[organisation]/[module]-[revision].[ext]"
 		}
+		mavenRepo name: "markdown4j", url: "http://scala-tools.org/repo-releases"
 	}
 	dependencies {
-		classpath "org.apache.maven.wagon:wagon-webdav-jackrabbit:1.0-beta-6",
-		          "markdown2book:markdown2book:1.0-SNAPSHOT"
+		classpath "markdown2book:markdown2book:1.0-SNAPSHOT", "org.apache.maven.wagon:wagon-webdav-jackrabbit:1.0-beta-6"
 	}
 }
 
@@ -22,8 +22,7 @@ allprojects {
 	
 	repositories {
 		mavenCentral()
-		mavenRepo name: "spock-snapshots", urls: ["http://m2repo.spockframework.org/snapshots"]
-		mavenRepo name: "markdown4j", urls: ["http://scala-tools.org/repo-releases"]
+		mavenRepo name: "spock-snapshots", url: ["http://m2repo.spockframework.org/snapshots"]
 	}
 	
 	apply plugin: "idea"
@@ -81,6 +80,7 @@ subprojects {
 	
 	if (project.path in publishedModules) {
 		apply plugin: 'maven'
+		apply plugin: 'signing'
 		
 		task sourcesJar(type: Jar, dependsOn: classes) { 
 			classifier = 'sources' 
@@ -92,14 +92,18 @@ subprojects {
 			from javadoc.destinationDir 
 		} 
 
+		signing {
+			sign configurations.archives
+		}
+		
 		configurations {
-			meta
 			deployerJars
+			archives.extendsFrom signatures
 		}
 
 		artifacts {
-			meta javadocJar
-			meta sourcesJar
+			archives javadocJar
+			archives sourcesJar
 		}
 		
 		dependencies {
@@ -109,12 +113,11 @@ subprojects {
 		project.poms = [install.repositories.mavenInstaller.pom]
 		
 		if (project.hasProperty('codehausUsername') && project.hasProperty('codehausPassword')) {
-			uploadArchives.dependsOn sourcesJar, javadocJar
 			uploadArchives {
 				project.deployer = repositories.mavenDeployer {
 					beforeDeployment { MavenDeployment deployment ->
-						["sources", "javadoc"].each { type ->
-							deployment.addArtifact configurations.meta.artifacts.find { it.classifier == type }
+						if (signing.signatory) {
+							signPom(deployment)
 						}
 					}
 					uniqueVersion = false
