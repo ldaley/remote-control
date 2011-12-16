@@ -246,7 +246,7 @@ class SmokeTests extends GroovyTestCase {
 	 * command is passed to the next command as it's single argument
 	 */
 	void testCommandChaining() {
-		remote.exec({ 1 }, { it + 1 }, { it + 1 }) == 3
+		remote.exec({ 1 }, { it + 1 }) { it + 1 } == 3
 	}
 	
 	/**
@@ -255,9 +255,8 @@ class SmokeTests extends GroovyTestCase {
 	void testCanUseDelegateStorageAlongChain() {
 		remote.exec(
 			{ num = 1 }, 
-			{ num = num + 1 }, 
-			{ num + 1 }
-		) == 3
+			{ num = num + 1 }
+		) { num + 1 } == 3
 	}
 	
 	/**

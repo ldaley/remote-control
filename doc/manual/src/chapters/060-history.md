@@ -2,6 +2,12 @@
 
 This page lists the high level changes between versions of Groovy Remote Control.
 
+## 0.3
+
+### Fixes 
+
+* Correctly propagate exceptions with causes
+
 ## 0.2
 
 ### Breaking Changes
