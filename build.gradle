@@ -1,4 +1,12 @@
 buildscript {
+	configurations {
+		all {
+			resolutionStrategy {
+				cacheDynamicVersionsFor 24, 'hours'
+				cacheChangingModulesFor 24, 'hours'
+			}
+		}
+	}
 	repositories {
 		mavenCentral()
 		mavenRepo (name: "Alkemists's GitHub", url: "http://cloud.github.com/downloads/alkemist") {
@@ -41,7 +49,16 @@ def publishedGroovyModules = groovyModules.findAll { it in publishedModules }
 subprojects {
 	version = '0.3-SNAPSHOT'
 	group = 'org.codehaus.groovy.modules.remote'
-		
+	
+	configurations {
+		all {
+			resolutionStrategy {
+				cacheDynamicVersionsFor 24, 'hours'
+				cacheChangingModulesFor 24, 'hours'
+			}
+		}
+	}
+	
 	if (project.path in groovyModules) {
 		apply plugin: "groovy"
 		apply plugin: "code-quality"
