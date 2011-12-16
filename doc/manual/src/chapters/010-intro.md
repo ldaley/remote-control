@@ -53,7 +53,7 @@ These are just some examples of what can be achieved, and not a complete listing
 
 ## Installation
 
-> The current version of Groovy Remote Control is **0.2**
+> The current version of Groovy Remote Control is **0.3**
 
 To get up and running you need the `remote-core` jar (available from Maven central) and a transport implementation. 
 
