@@ -5,3 +5,4 @@ build.sh
 *.iml
 *.ipr
 *.iws
+/out
