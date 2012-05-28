@@ -217,6 +217,27 @@ class SmokeTests extends GroovyTestCase {
 			remote.exec({ it }.curry(System.out))
 		}
 	}
+
+	/**
+	 * Closures defined outside of the exec closures can be used inside of them if only the closures defined outside are passed as contextClosure option. Useful when creating DSLs.
+	 */
+	void testPassingContextClosures() {
+		def contextClosure = { 1 }
+		assert remote.exec(contextClosures: [contextClosure]) { contextClosure() + 1 } == 2
+	}
+
+	void testPassingContextClosuresWithInnerClosures() {
+		def contextClosure = { (1..3).inject(0) { sum, value -> sum + value } }
+		assert remote.exec(contextClosures: [contextClosure]) { contextClosure() } == 6
+	}
+
+	void testPassingContextClosuresThatAccessADelegate() {
+		def contextClosure = { size() }
+		assert remote.exec(contextClosures: [contextClosure]) {
+			contextClosure.setProperty('delegate', 'some text')
+			contextClosure()
+		} == 9
+	}
 	
 	/**
 	 * Any classes referenced have to be available in the remote app,
