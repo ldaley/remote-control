@@ -27,7 +27,7 @@ class CommandInvoker {
 	final Class rootClass
 	final List supportClasses
 	
-	private CommandInvoker(ClassLoader parentLoader, Command command) {
+	CommandInvoker(ClassLoader parentLoader, Command command) {
 		this.parentLoader = parentLoader
 		this.command = command
 	}
@@ -44,8 +44,12 @@ class CommandInvoker {
 				thrown = thrown.cause
 			}
 
-			Result.forThrown(StackTraceUtils.deepSanitize(thrown))
+			resultForThrown(thrown)
 		}
+	}
+
+	protected Result resultForThrown(Throwable thrown) {
+		Result.forThrown(StackTraceUtils.deepSanitize(thrown))
 	}
 	
 	def instantiate() {

@@ -22,8 +22,8 @@ class CommandChainInvoker {
 	
 	final ClassLoader parentLoader
 	final CommandChain commandChain
-	
-	private CommandChainInvoker(ClassLoader parentLoader, CommandChain commandChain) {
+
+	CommandChainInvoker(ClassLoader parentLoader, CommandChain commandChain) {
 		this.parentLoader = parentLoader
 		this.commandChain = commandChain
 	}
@@ -34,7 +34,7 @@ class CommandChainInvoker {
 		def lastCommand = commandChain.commands.last()
 		
 		for (command in commandChain.commands) {
-			lastResult = new CommandInvoker(parentLoader, command).invokeAgainst(delegate, arg)
+			lastResult = createInvoker(parentLoader, command).invokeAgainst(delegate, arg)
 			
 			if (command != lastCommand) {
 				if (lastResult.thrown) {
@@ -49,5 +49,9 @@ class CommandChainInvoker {
 		}
 		
 		lastResult
+	}
+
+	protected createInvoker(ClassLoader loader, Command command) {
+		new CommandInvoker(parentLoader, command)
 	}
 }
