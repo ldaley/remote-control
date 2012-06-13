@@ -81,7 +81,7 @@ class RemoteControl {
 	}
 
 	protected void processExecParams(Map params) {
-		params.contextClosures.each {
+		params.usedClosures.each {
             Closure.metaClass.setAttribute(it, 'owner', null)
             Closure.metaClass.setAttribute(it, 'thisObject', null)
             it.delegate = null

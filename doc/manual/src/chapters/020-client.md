@@ -66,7 +66,7 @@ You can use closures inside the command closure.
 
 ### Adding closures to context
 
-Sometimes you might want to define closures outside of the `exec` method call and then execute them on the server side. This is especially usefull when creating DSL-like calls that get executed on the remote. You can use `contextClosures` option in the `exec` call for that.
+Sometimes you might want to define closures outside of the `exec` method call and then execute them on the server side. This is especially usefull when creating DSL-like calls that get executed on the remote. You can use `usedClosures` option in the `exec` call for that.
 
 Given a delegate class and a dsl entry-point:
 
@@ -91,7 +91,7 @@ Given a delegate class and a dsl entry-point:
     }
 
     void dsl(Closure closure) {
-        remote.exec(contextClosures: [closure]) {
+        remote.exec(usedClosures: [closure]) {
             def dslDelegate = new DslDelegate()
             closure.setDelegate(dslDelegate)
             closure.call()

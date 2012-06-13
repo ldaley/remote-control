@@ -221,19 +221,19 @@ class SmokeTests extends GroovyTestCase {
 	/**
 	 * Closures defined outside of the exec closures can be used inside of them if only the closures defined outside are passed as contextClosure option. Useful when creating DSLs.
 	 */
-	void testPassingContextClosures() {
+	void testPassingUsedClosures() {
 		def contextClosure = { 1 }
-		assert remote.exec(contextClosures: [contextClosure]) { contextClosure() + 1 } == 2
+		assert remote.exec(usedClosures: [contextClosure]) { contextClosure() + 1 } == 2
 	}
 
-	void testPassingContextClosuresWithInnerClosures() {
+	void testPassingUsedClosuresWithInnerClosures() {
 		def contextClosure = { (1..3).inject(0) { sum, value -> sum + value } }
-		assert remote.exec(contextClosures: [contextClosure]) { contextClosure() } == 6
+		assert remote.exec(usedClosures: [contextClosure]) { contextClosure() } == 6
 	}
 
-	void testPassingContextClosuresThatAccessADelegate() {
+	void testPassingUsedClosuresThatAccessADelegate() {
 		def contextClosure = { size() }
-		assert remote.exec(contextClosures: [contextClosure]) {
+		assert remote.exec(usedClosures: [contextClosure]) {
 			contextClosure.setProperty('delegate', 'some text')
 			contextClosure()
 		} == 9

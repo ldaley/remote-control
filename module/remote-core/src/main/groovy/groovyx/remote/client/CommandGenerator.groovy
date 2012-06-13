@@ -41,13 +41,13 @@ class CommandGenerator {
 		def root = getRootClosure(cloned)
 
 		def supportsRoot = getSupportingClassesBytes(root.class)
-		def contextClosuresBytes = params.contextClosures.collect { getClassBytes(it.class) }
-		def supportsContextClosures = params.contextClosures.collect { getSupportingClassesBytes(it.class) }.inject([]) { flattened, current -> flattened + current }
+		def usedClosuresBytes = params.usedClosures.collect { getClassBytes(it.class) }
+		def supportsUsedClosures = params.usedClosures.collect { getSupportingClassesBytes(it.class) }.inject([]) { flattened, current -> flattened + current }
 		
 		new Command(
 			instance: serializeInstance(cloned, root),
 			root: getClassBytes(root.class),
-			supports: supportsRoot + contextClosuresBytes + supportsContextClosures
+			supports: supportsRoot + usedClosuresBytes + supportsUsedClosures
 		)
 	}
 	
