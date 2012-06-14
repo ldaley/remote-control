@@ -238,6 +238,18 @@ class SmokeTests extends GroovyTestCase {
 			contextClosure()
 		} == 9
 	}
+
+	void testPassingWrongTypeInUsedClosures() {
+		assert shouldFail(IllegalArgumentException) {
+			remote.exec(usedClosures: {}) {}
+		} == "'usedClosures' option has illegal value"
+	}
+
+	void testPassingUnknownOption() {
+		assert shouldFail(IllegalArgumentException) {
+			remote.exec(unknown: {}) {}
+		} == "Unknown option 'unknown'"
+	}
 	
 	/**
 	 * Any classes referenced have to be available in the remote app,

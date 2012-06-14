@@ -68,6 +68,7 @@ class RemoteControl {
 	}
 
 	def exec(Map params, Closure[] commands) {
+		validateExecParams(params)
 		processExecParams(params)
 		processResult(sendCommandChain(generateCommandChain(params, commands)))
 	}
@@ -87,6 +88,22 @@ class RemoteControl {
             it.delegate = null
             it.resolveStrategy = Closure.DELEGATE_ONLY
         }
+	}
+
+	protected void validateExecParams(Map params) {
+		def validators = execParamsValidators
+		params.each { key, value ->
+			if (!(key in validators.keySet())) {
+				throw new IllegalArgumentException("Unknown option '$key'")
+			}
+			if (!validators[key](value)) {
+				throw new IllegalArgumentException("'$key' option has illegal value")
+			}
+		}
+	}
+
+	protected Map<String, Class> getExecParamsValidators() {
+		['usedClosures': { it in Collection && it.every{ it in Closure } }]
 	}
 
 	protected CommandChain generateCommandChain(Map params, Closure[] commands) {
