@@ -64,9 +64,9 @@ You can use closures inside the command closure.
         }
     }
 
-### Adding closures to context
+### Passing additional closures to the server side
 
-Sometimes you might want to define closures outside of the `exec` method call and then execute them on the server side. This is especially usefull when creating DSL-like calls that get executed on the remote. You can use `usedClosures` option in the `exec` call for that.
+When using the library you have to be aware that only the closure defined in `exec` call and closures defined within that closure are serialized and passed to the server side. Sometimes you might want to define closures outside of the `exec` method call and then execute them on the server side. This is especially useful when creating DSL-like calls that get executed on the remote. You can use `usedClosures` option in the `exec` call for that.
 
 Given a delegate class and a dsl entry-point:
 
