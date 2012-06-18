@@ -21,27 +21,27 @@ import groovyx.remote.*
  * Executes closures in a server, communicating via a Transport.
  */
 class RemoteControl {
-	
+
 	final Transport transport
 	protected final CommandGenerator commandGenerator
 
 	/**
 	 * If set, {@code null} will be used as the return value if the actual return value was not serializable.
-	 * 
+	 *
 	 * This prevents a UnserializableReturnException from being thrown.
 	 */
 	boolean useNullIfResultWasUnserializable = false
 
 	/**
 	 * If set, the string representation of the actual return value will be used if the actual return value was not serializable.
-	 * 
+	 *
 	 * This prevents a UnserializableReturnException from being thrown.
 	 */
 	boolean useStringRepresentationIfResultWasUnserializable = false
-	
+
 	/**
 	 * Creates a remote using the given transport and the current thread's contextClassLoader.
-	 * 
+	 *
 	 * @see RemoteControl(Transport, ClassLoader)
 	 */
 	RemoteControl(Transport transport) {
@@ -54,7 +54,7 @@ class RemoteControl {
 	RemoteControl(Transport transport, ClassLoader classLoader) {
 		this(transport, new CommandGenerator(classLoader))
 	}
-	
+
 	/**
 	 * Hook for subclasses to provide a custom command generator.
 	 */
@@ -62,23 +62,58 @@ class RemoteControl {
 		this.transport = transport
 		this.commandGenerator = commandGenerator
 	}
-	
+
 	def exec(Closure[] commands) {
-		processResult(sendCommandChain(generateCommandChain(commands)))
+		exec([:], commands)
 	}
-	
+
+	def exec(Map params, Closure[] commands) {
+		validateExecParams(params)
+		processExecParams(params)
+		processResult(sendCommandChain(generateCommandChain(params, commands)))
+	}
+
+	def call(Map params, Closure[] commands) {
+		exec(params, commands)
+	}
+
 	def call(Closure[] commands) {
 		exec(commands)
 	}
-	
-	protected CommandChain generateCommandChain(Closure[] commands) {
-		new CommandChain(commands: commands.collect { commandGenerator.generate(it) })
+
+	protected void processExecParams(Map params) {
+		params.usedClosures.each {
+            Closure.metaClass.setAttribute(it, 'owner', null)
+            Closure.metaClass.setAttribute(it, 'thisObject', null)
+            it.delegate = null
+            it.resolveStrategy = Closure.DELEGATE_ONLY
+        }
 	}
-	
+
+	protected void validateExecParams(Map params) {
+		def validators = execParamsValidators
+		params.each { key, value ->
+			if (!(key in validators.keySet())) {
+				throw new IllegalArgumentException("Unknown option '$key'")
+			}
+			if (!validators[key](value)) {
+				throw new IllegalArgumentException("'$key' option has illegal value")
+			}
+		}
+	}
+
+	protected Map<String, Class> getExecParamsValidators() {
+		['usedClosures': { it in Collection && it.every{ it in Closure } }]
+	}
+
+	protected CommandChain generateCommandChain(Map params, Closure[] commands) {
+		new CommandChain(commands: commands.collect { commandGenerator.generate(params, it) })
+	}
+
 	protected Result sendCommandChain(CommandChain commandChain) {
 		transport.send(commandChain)
 	}
-	
+
 	protected processResult(Result result) {
 		if (result.wasNull) {
 			null

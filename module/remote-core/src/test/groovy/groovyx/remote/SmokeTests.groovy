@@ -217,6 +217,39 @@ class SmokeTests extends GroovyTestCase {
 			remote.exec({ it }.curry(System.out))
 		}
 	}
+
+	/**
+	 * Closures defined outside of the exec closures can be used inside of them if only the closures defined outside are passed as contextClosure option. Useful when creating DSLs.
+	 */
+	void testPassingUsedClosures() {
+		def contextClosure = { 1 }
+		assert remote.exec(usedClosures: [contextClosure]) { contextClosure() + 1 } == 2
+	}
+
+	void testPassingUsedClosuresWithInnerClosures() {
+		def contextClosure = { (1..3).inject(0) { sum, value -> sum + value } }
+		assert remote.exec(usedClosures: [contextClosure]) { contextClosure() } == 6
+	}
+
+	void testPassingUsedClosuresThatAccessADelegate() {
+		def contextClosure = { size() }
+		assert remote.exec(usedClosures: [contextClosure]) {
+			contextClosure.setProperty('delegate', 'some text')
+			contextClosure()
+		} == 9
+	}
+
+	void testPassingWrongTypeInUsedClosures() {
+		assert shouldFail(IllegalArgumentException) {
+			remote.exec(usedClosures: {}) {}
+		} == "'usedClosures' option has illegal value"
+	}
+
+	void testPassingUnknownOption() {
+		assert shouldFail(IllegalArgumentException) {
+			remote.exec(unknown: {}) {}
+		} == "Unknown option 'unknown'"
+	}
 	
 	/**
 	 * Any classes referenced have to be available in the remote app,

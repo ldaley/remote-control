@@ -29,6 +29,7 @@ class RemoteControlServlet extends HttpServlet {
 	Receiver receiver 
 	
 	void init(ServletConfig config) {
+		super.init(config)
 		receiver = createReceiver()
 	}
 	

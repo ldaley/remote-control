@@ -64,6 +64,52 @@ You can use closures inside the command closure.
         }
     }
 
+### Passing additional closures to the server side
+
+When using the library you have to be aware that only the closure defined in `exec` call and closures defined within that closure are serialized and passed to the server side. Sometimes you might want to define closures outside of the `exec` method call and then execute them on the server side. This is especially useful when creating DSL-like calls that get executed on the remote. You can use `usedClosures` option in the `exec` call for that.
+
+Given a delegate class and a dsl entry-point:
+
+    class DslDelegate {
+        int value
+
+        void startingWith(int value) {
+            this.value = value
+        }
+
+        void add(int added) {
+            value += added
+        }
+
+        void subtract(int subtracted) {
+            value -= subtracted
+        }
+
+        void divideBy(int dividedBy) {
+            value /= dividedBy
+        }
+    }
+
+    void dsl(Closure closure) {
+        remote.exec(usedClosures: [closure]) {
+            def dslDelegate = new DslDelegate()
+            closure.setDelegate(dslDelegate)
+            closure.call()
+            dslDelegate.value
+        }
+    }
+
+The following will pass:
+
+    assert dsl {
+        startingWith 8
+        add 1
+        subtract 3
+        divideBy 3
+    } == 2
+
+
+
 ### Remote Exceptions
 
 Exceptions thrown on the server are captured and returned to the client where they are wrapped in a `groovyx.remote.client.RemoteException` and thrown.
