@@ -79,7 +79,7 @@ class CommandGenerator {
 			throw new IllegalStateException("Could not find class file for class ${closureClass}")
 		}
 		
-		new File(classFileResource.file).bytes
+		classFileResource.bytes
 	}
 	
 	protected String getClassFileName(Class closureClass) {
