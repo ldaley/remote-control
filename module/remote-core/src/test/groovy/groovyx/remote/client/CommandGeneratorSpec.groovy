@@ -23,7 +23,7 @@ class CommandGeneratorSpec extends Specification {
 	
 	def "support size"() {
 		expect:
-		generator.generate(command).supports.size() == size
+		generator.generate([:], command).supports.size() == size
 		where:
 		command                                                              | size
 		{ -> "123" }                                                         | 0

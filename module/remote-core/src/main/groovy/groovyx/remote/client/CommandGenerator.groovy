@@ -36,14 +36,18 @@ class CommandGenerator {
 	/**
 	 * For the given closure, generate a command object.
 	 */
-	Command generate(Closure closure) {
+	Command generate(Map params, Closure closure) {
 		def cloned = closure.clone()
 		def root = getRootClosure(cloned)
+
+		def supportsRoot = getSupportingClassesBytes(root.class)
+		def usedClosuresBytes = params.usedClosures.collect { getClassBytes(it.class) }
+		def supportsUsedClosures = params.usedClosures.collect { getSupportingClassesBytes(it.class) }.inject([]) { flattened, current -> flattened + current }
 		
 		new Command(
 			instance: serializeInstance(cloned, root),
 			root: getClassBytes(root.class),
-			supports: getSupportingClassesBytes(root.class)
+			supports: supportsRoot + usedClosuresBytes + supportsUsedClosures
 		)
 	}
 	
