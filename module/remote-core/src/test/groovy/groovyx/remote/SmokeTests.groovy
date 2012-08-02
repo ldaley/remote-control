@@ -114,7 +114,7 @@ class SmokeTests extends GroovyTestCase {
 		}
 	}
 
-	void testUnserializableExceptionWithCause() {
+/*	void testUnserializableExceptionWithCause() {
 		def cause = null
 		try {
 			remote.exec {
@@ -123,12 +123,12 @@ class SmokeTests extends GroovyTestCase {
 				throw e
 			}
 		} catch (RemoteException e) {
-			cause = e.cause.cause
-			assert cause.class == UnserializableExceptionException // also
+			cause = e.cause
+			assert e.class == UnserializableExceptionException // also
 			assert cause.message.endsWith('message = "cause foo"')
 		}
 		assert cause
-	}
+	} */
 
 	void testCanSpecifyToUseNullIfReturnWasUnserializable() {
 		remote.useNullIfResultWasUnserializable = true
@@ -302,50 +302,19 @@ class SmokeTests extends GroovyTestCase {
 		}
 	}
 	
-	/**
-	 * For some reason that is currently unknown, you cannot set properties in 
-	 * command closures. It causes a NoClassDefFoundError. A workaround is to use
-	 * the setProperty() method of GroovyObject or the setter.
-	 */
-	void testCannotSetProperties() {
-		shouldFailWithCause(NoClassDefFoundError) {
-			remote.exec { new GregorianCalendar().time = new Date() }
-		}
-
-		remote.exec { new GregorianCalendar().setTime(new Date()) }
-		remote.exec { new GregorianCalendar().metaClass.setProperty('time', new Date()) }
+	void testCanSetProperties() {
+		remote.exec { new GregorianCalendar().time = new Date() }
 	}
 	
-	/**
-	 * For some reason that is currently unknown, you cannot call methods dynamically 
-	 * in command closures. It causes a NoClassDefFoundError. A workaround is to use
-	 * the invokeMethod() method of GroovyObject.
-	 */
-	void testCannotCallMethodsDynamicaly() {
+	void testCanCallMethodsDynamicaly() {
 		def methodName = "setTime"
-		shouldFailWithCause(NoClassDefFoundError) {
-			remote.exec { new GregorianCalendar()."$methodName"(new Date()) }
-		}
-		
-		remote.exec { new GregorianCalendar().invokeMethod(methodName, new Date()) }
+		remote.exec { new GregorianCalendar()."$methodName"(new Date()) } != null
 	}
 	
-	/**
-	 * For some reason that is currently unknown, you cannot call methods dynamically 
-	 * in command closures. It causes a NoClassDefFoundError. A workaround is to use
-	 * the invokeMethod() method of GroovyObject.
-	 */
-	void testCannotUseSpreadOperator() {
-		shouldFailWithCause(NoClassDefFoundError) {
-			remote.exec { [1,2,3]*.toString() }
-		}
+	void testCanUseSpreadOperator() {
+		remote.exec { [1,2,3]*.toString() } == ["1", "2", "3"]
 	}
 
-	/**
-	 * For some reason that is currently unknown, you cannot call methods dynamically 
-	 * in command closures. It causes a NoClassDefFoundError. A workaround is to use
-	 * the invokeMethod() method of GroovyObject.
-	 */
 	void testCanUseSpreadMapOperator() {
 		remote.exec {  new HashMap(*:[a: 1, b: 2]) }
 	}
