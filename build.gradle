@@ -190,7 +190,7 @@ subprojects {
 
 project(':module:remote-core') {
 	dependencies {
-		testCompile project(":module:remote-transport-local")
+		testCompile project(":module:remote-transport-local"), project(":module:remote-using-lib")
 	}
 }
 
@@ -204,6 +204,15 @@ project(':module:remote-transport-http') {
 
 project(':module:remote-transport-local') {
 	dependencies {
+		compile project(":module:remote-core")
+	}
+}
+
+project(':module:remote-using-lib') {
+	apply plugin: "groovy"
+
+	dependencies {
+		groovy groovyDependency
 		compile project(":module:remote-core")
 	}
 }
