@@ -37,7 +37,7 @@ allprojects {
 }
 
 def groovyModules = [
-	":module:remote-core", ":module:remote-transport-local", ":module:remote-transport-http"
+	":module:remote-core", ":module:remote-transport-local", ":module:remote-transport-http", ":module:remote-test-utils"
 ]
 
 def publishedModules = [
@@ -190,7 +190,8 @@ subprojects {
 
 project(':module:remote-core') {
 	dependencies {
-		testCompile project(":module:remote-transport-local"), project(":module:remote-using-lib")
+		testCompile project(":module:remote-transport-local"), project(":module:remote-using-lib"),
+                    project(":module:remote-test-utils")
 	}
 }
 

@@ -21,6 +21,7 @@ import groovyx.remote.client.RemoteException
 import groovyx.remote.client.UnserializableReturnException
 import groovyx.remote.server.Receiver
 import groovyx.remote.transport.local.LocalTransport
+import groovyx.remote.test.UnserializableException
 
 /**
  * This test case shows how to use the remote control and some of it's limitations
@@ -48,6 +49,7 @@ class SmokeTests extends GroovyTestCase {
 		// classes defined in this file.
 		def thisClassLoader = getClass().classLoader
 		def neededURLsForServer = thisClassLoader.getURLs().findAll { it.path.contains("groovy-all") }
+		neededURLsForServer.addAll thisClassLoader.getURLs().findAll { it.path.contains("remote-test-utils") }
 		def serverClassLoader = new URLClassLoader(neededURLsForServer as URL[], thisClassLoader.parent)
 		
 		def receiver = new Receiver(serverClassLoader)
@@ -114,21 +116,21 @@ class SmokeTests extends GroovyTestCase {
 		}
 	}
 
-/*	void testUnserializableExceptionWithCause() {
+	void testUnserializableExceptionWithCause() {
 		def cause = null
 		try {
 			remote.exec {
-				def e = new IncorrectClosureArgumentsException({ 1 }, [System.out], OutputStream)
+				def e = new UnserializableException()
 				e.initCause(new Exception('cause foo'))
 				throw e
 			}
 		} catch (RemoteException e) {
-			cause = e.cause
-			assert e.class == UnserializableExceptionException // also
-			assert cause.message.endsWith('message = "cause foo"')
+			assert e.cause.class == UnserializableExceptionException // also
+			assert e.cause.message == "wrapped unserializable exception: class = groovyx.remote.test.UnserializableException, message = \"null\""
+			assert e.cause.cause.class == UnserializableExceptionException // also
+			assert e.cause.cause.message == "wrapped unserializable exception: class = java.lang.Exception, message = \"cause foo\""
 		}
-		assert cause
-	} */
+	}
 
 	void testCanSpecifyToUseNullIfReturnWasUnserializable() {
 		remote.useNullIfResultWasUnserializable = true
