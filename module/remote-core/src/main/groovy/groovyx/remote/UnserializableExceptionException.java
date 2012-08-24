@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package groovyx.remote
+package groovyx.remote;
 
-class RemoteControlException extends RuntimeException {
+import static java.lang.String.format;
 
-	static public final long serialVersionUID = 1L
+public class UnserializableExceptionException extends RemoteControlException {
+
+	static public final long serialVersionUID = 1L;
 	
-	RemoteControlException(message, Throwable cause = null) {
-		super(message as String)
-		if (cause) {
-			initCause(cause)
+	public UnserializableExceptionException(Throwable unserializable) {
+		super(format("wrapped unserializable exception: class = %s, message = \"%s\"", unserializable.getClass().getName(), unserializable.getMessage()));
+		setStackTrace(unserializable.getStackTrace());
+		
+		if (unserializable.getCause() != null) {
+			initCause(new UnserializableExceptionException(unserializable.getCause()));
 		}
 	}
 

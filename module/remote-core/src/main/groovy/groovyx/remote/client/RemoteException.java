@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package groovyx.remote.client
+package groovyx.remote.client;
 
-import groovyx.remote.*
+import groovyx.remote.RemoteControlException;
 
-class UnserializableReturnException extends RemoteControlException {
+public class RemoteException extends RemoteControlException {
 
-	final String stringRepresentation
-	
-	UnserializableReturnException(Result result) {
-		super("The return value of the command was not serializable, its string representation was '$result.stringRepresentation'")
-		this.stringRepresentation = result.stringRepresentation
+	public RemoteException(Throwable remote) {
+		super("An exception was raised in the remote application", remote);
 	}
 
 }

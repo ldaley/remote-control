@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package groovyx.remote.client
+package groovyx.remote;
 
-import groovyx.remote.RemoteControlException
+public class RemoteControlException extends RuntimeException {
 
-class RemoteException extends RemoteControlException {
+	static public final long serialVersionUID = 1L;
 
-	RemoteException(Throwable remote) {
-		super("An exception was raised in the remote application", remote)
+	public RemoteControlException(Object message) {
+		this(message, null);
+	}
+
+	public RemoteControlException(Object message, Throwable cause) {
+		super(message.toString());
+		if (cause != null) {
+			initCause(cause);
+		}
 	}
 
 }
