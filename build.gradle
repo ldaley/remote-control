@@ -47,7 +47,7 @@ def publishedModules = [
 def publishedGroovyModules = groovyModules.findAll { it in publishedModules }
 
 subprojects {
-	version = '0.5-SNAPSHOT'
+	version = '0.5'
 	group = 'org.codehaus.groovy.modules.remote'
 	
 	configurations {
