@@ -27,6 +27,7 @@ class RemoteControlServletSpec extends Specification {
 
     @Shared remote
     @Shared server
+    @Shared endpointUrl
 
     def setupSpec() {
         // we need to create a classloader for the "server" side that cannot access
@@ -45,12 +46,22 @@ class RemoteControlServletSpec extends Specification {
 
         def port = server?.connectors[0].localPort
 
-        remote = new RemoteControl(new HttpTransport("http://localhost:${port}" as String))
+        endpointUrl = "http://localhost:${port}"
+        remote = new RemoteControl(new HttpTransport(endpointUrl))
     }
 
     def "test the handler"() {
         expect:
         remote.exec { def a = 2; a + 2 } == 4
+    }
+
+    def "hit direct"() {
+        when:
+        HttpURLConnection connection = new URL(endpointUrl).openConnection()
+        connection.requestMethod = "POST"
+
+        then:
+        connection.responseCode == 415
     }
 
     def cleanupSpec() {
