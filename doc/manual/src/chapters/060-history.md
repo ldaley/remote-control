@@ -10,10 +10,14 @@ This page lists the high level changes between versions of Groovy Remote Control
 
 ## 0.5
 
+### New features
+
+* New `usedClosures` option of `Remote.exec()` which enables passing additional closures to the server side
+
 ### Fixes
 
 * Rewrite exceptions into Java to avoid problem with Java 7
-* [Placeholder for Marcin]
+* Closures from classes using `RemoteControl` added to classpath from jar files are properly retrieved and sent over the wire
 
 ## 0.4
 
