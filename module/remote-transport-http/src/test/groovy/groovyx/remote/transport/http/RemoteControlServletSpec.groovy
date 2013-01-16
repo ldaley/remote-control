@@ -15,46 +15,45 @@
  */
 package groovyx.remote.transport.http
 
-import groovyx.remote.client.*
-import groovyx.remote.server.*
-
+import groovyx.remote.client.RemoteControl
+import groovyx.remote.server.Receiver
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.servlet.ServletHolder
-
-import spock.lang.*
+import spock.lang.Shared
+import spock.lang.Specification
 
 class RemoteControlServletSpec extends Specification {
 
-	@Shared remote
-	@Shared server
-	
-	def setupSpec() {
-		// we need to create a classloader for the "server" side that cannot access
-		// classes defined in this file.
-		def thisClassLoader = getClass().classLoader
-		def neededURLsForServer = thisClassLoader.getURLs().findAll { it.path.contains("groovy-all") }
-		def serverClassLoader = new URLClassLoader(neededURLsForServer as URL[], thisClassLoader.parent)
-		
-		def receiver = new Receiver(serverClassLoader)
-		
-		server = new Server(0)
-		def context = new Context(server, "/")
-		def servlet = [createReceiver: { -> new Receiver(serverClassLoader) }] as RemoteControlServlet
-		context.addServlet(new ServletHolder(servlet), "/*")
-		server.start()
-		
-		def port = server?.connectors[0].localPort
-		
-		remote = new RemoteControl(new HttpTransport("http://localhost:${port}" as String))
-	}
+    @Shared remote
+    @Shared server
 
-	def "test the handler"() {
-		expect:
-		remote.exec { def a = 2; a + 2 } == 4
-	}
-	
-	def cleanupSpec() {
-		server.stop()
-	}
+    def setupSpec() {
+        // we need to create a classloader for the "server" side that cannot access
+        // classes defined in this file.
+        def thisClassLoader = getClass().classLoader
+        def neededURLsForServer = thisClassLoader.getURLs().findAll { it.path.contains("groovy-all") }
+        def serverClassLoader = new URLClassLoader(neededURLsForServer as URL[], thisClassLoader.parent)
+
+        def receiver = new Receiver(serverClassLoader)
+
+        server = new Server(0)
+        def context = new Context(server, "/")
+        def servlet = [createReceiver: {-> new Receiver(serverClassLoader) }] as RemoteControlServlet
+        context.addServlet(new ServletHolder(servlet), "/*")
+        server.start()
+
+        def port = server?.connectors[0].localPort
+
+        remote = new RemoteControl(new HttpTransport("http://localhost:${port}" as String))
+    }
+
+    def "test the handler"() {
+        expect:
+        remote.exec { def a = 2; a + 2 } == 4
+    }
+
+    def cleanupSpec() {
+        server.stop()
+    }
 }
