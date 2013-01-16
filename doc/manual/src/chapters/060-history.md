@@ -2,6 +2,23 @@
 
 This page lists the high level changes between versions of Groovy Remote Control.
 
+## 0.6
+
+### Breaking Changes
+
+* Upgrade to Groovy 2
+
+## 0.5
+
+### Fixes
+
+* Rewrite exceptions into Java to avoid problem with Java 7
+* [Placeholder for Marcin]
+
+## 0.4
+
+Unreleased.
+
 ## 0.3
 
 ### Fixes 
