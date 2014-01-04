@@ -16,6 +16,7 @@
 package groovyx.remote.client
 
 import groovyx.remote.Command
+import groovyx.remote.util.ClosureUtil
 import org.codehaus.groovy.runtime.CurriedClosure
 
 /**
@@ -98,9 +99,7 @@ class CommandGenerator {
      * @param root the actual generated closure that contains the implementation.
      */
     protected byte[] serializeInstance(Closure closure, Closure root) {
-        Closure.metaClass.setAttribute(root, 'owner', null)
-        Closure.metaClass.setAttribute(root, 'thisObject', null)
-        root.delegate = null
+        ClosureUtil.nullFields(root)
 
         def baos = new ByteArrayOutputStream()
         def oos = new ObjectOutputStream(baos)

@@ -45,7 +45,7 @@ class SmokeTests extends GroovyTestCase {
 
     // Used in a later test
     def anIvar = 2
-    static remote
+    static RemoteControl remote
 
     void setUp() {
         if (remote == null) {
@@ -246,7 +246,7 @@ class SmokeTests extends GroovyTestCase {
     void testPassingWrongTypeInUsedClosures() {
         assert shouldFail(IllegalArgumentException) {
             remote.exec(usedClosures: {}) {}
-        } == "'usedClosures' option has illegal value"
+        } == "'usedClosures' argument must be iterable"
     }
 
     void testPassingUnknownOption() {
