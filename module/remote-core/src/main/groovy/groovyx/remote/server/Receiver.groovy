@@ -143,7 +143,7 @@ class Receiver {
     }
 
     protected Result invokeCommandChain(CommandChain commandChain) {
-        createInvoker(classLoader, commandChain).invokeAgainst(createContext(commandChain))
+        createInvoker(classLoader, commandChain).invokeAgainst(createContext(commandChain), null)
     }
 
     protected createInvoker(ClassLoader classLoader, CommandChain commandChain) {
