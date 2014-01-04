@@ -108,10 +108,10 @@ class RemoteControl {
     }
 
     protected CommandChain generateCommandChain(Map params, Closure[] commands) {
-        new CommandChain(commands: commands.collect { commandGenerator.generate(params, it) })
+        new CommandChain(commands.collect { commandGenerator.generate(params, it) })
     }
 
-    protected groovyx.remote.result.Result sendCommandChain(CommandChain commandChain) {
+    protected Result sendCommandChain(CommandChain commandChain) {
         transport.send(commandChain)
     }
 

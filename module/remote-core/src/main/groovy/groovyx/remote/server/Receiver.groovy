@@ -138,7 +138,7 @@ class Receiver {
      * @param output The stream that the Result object shall be written to.
      */
     void execute(InputStream command, OutputStream result) {
-        def resultObject = invokeCommandChain(CommandChain.readFrom(command, classLoader))
+        def resultObject = invokeCommandChain(SerializationUtil.deserialize(CommandChain, command, classLoader))
         SerializationUtil.serialize(resultObject, result)
     }
 
