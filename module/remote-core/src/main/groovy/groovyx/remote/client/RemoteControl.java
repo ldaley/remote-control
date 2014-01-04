@@ -7,7 +7,6 @@ import groovyx.remote.result.*;
 import groovyx.remote.util.ClosureUtil;
 
 import java.io.IOException;
-import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -116,7 +115,7 @@ public class RemoteControl {
         }
     }
 
-    protected CommandChain generateCommandChain(final Map<String, Object> params, Closure<?>[] closures) throws NotSerializableException {
+    protected CommandChain generateCommandChain(final Map<String, Object> params, Closure<?>[] closures) throws IOException {
         List<Command> commands = new ArrayList<Command>(closures.length);
         for (Closure<?> closure : closures) {
             Command command = commandGenerator.generate(params, closure);

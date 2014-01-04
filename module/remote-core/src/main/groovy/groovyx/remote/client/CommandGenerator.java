@@ -38,7 +38,7 @@ public class CommandGenerator {
     /**
      * For the given closure, generate a command object.
      */
-    public Command generate(Map<String, Object> params, Closure<?> closure) throws NotSerializableException {
+    public Command generate(Map<String, Object> params, Closure<?> closure) throws IOException {
         Closure<?> cloned = (Closure<?>) closure.clone();
         Closure<?> root = getRootClosure(cloned);
         byte[] bytes = serializeInstance((Closure) cloned, root);
@@ -77,7 +77,7 @@ public class CommandGenerator {
      *
      * @see groovyx.remote.client.InnerClosureClassDefinitionsFinder
      */
-    protected List<byte[]> getSupportingClassesBytes(Class<? extends Closure> closureClass) {
+    protected List<byte[]> getSupportingClassesBytes(Class<? extends Closure> closureClass) throws IOException {
         return new InnerClosureClassDefinitionsFinder(classLoader).find(closureClass);
     }
 
