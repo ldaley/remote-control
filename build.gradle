@@ -254,7 +254,3 @@ project(":doc:site") {
     }
 
 }
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '1.3'
-}
