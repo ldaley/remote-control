@@ -2,6 +2,5 @@ include "module:remote-core",
         "module:remote-transport-local",
         "module:remote-transport-http",
 		"module:remote-using-lib",
-        "module:remote-test-utils",
         "doc:manual",
         "doc:site"

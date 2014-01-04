@@ -1,4 +1,4 @@
-package groovyx.remote.test;
+package groovyx.remote;
 
 public class UnserializableException extends Exception {
 	private UnserializableThing thing = new UnserializableThing();

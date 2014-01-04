@@ -15,27 +15,32 @@
  */
 package groovyx.remote.transport.local
 
-import groovyx.remote.*
-import groovyx.remote.server.Receiver
+import groovyx.remote.CommandChain
 import groovyx.remote.client.Transport
+import groovyx.remote.result.Result
+import groovyx.remote.result.ResultFactory
+import groovyx.remote.result.impl.DefaultResultFactory
+import groovyx.remote.server.Receiver
 
 class LocalTransport implements Transport {
 
-	final ClassLoader classLoader
-	final Receiver receiver
-	
-	LocalTransport(Receiver receiver, ClassLoader classLoader) {
-		this.receiver = receiver
-		this.classLoader = classLoader
-	}
+    final ClassLoader classLoader
+    final Receiver receiver
+    private final ResultFactory resultFactory
 
-	Result send(CommandChain commandChain) throws IOException {
-		def commandBytes = new ByteArrayOutputStream()
-		commandChain.writeTo(commandBytes)
-		
-		def resultBytes = new ByteArrayOutputStream()
-		receiver.execute(new ByteArrayInputStream(commandBytes.toByteArray()), resultBytes)
-	
-		Result.readFrom(new ByteArrayInputStream(resultBytes.toByteArray()), classLoader)
-	}
+    LocalTransport(Receiver receiver, ClassLoader classLoader, ResultFactory resultFactory = new DefaultResultFactory()) {
+        this.resultFactory = resultFactory
+        this.receiver = receiver
+        this.classLoader = classLoader
+    }
+
+    Result send(CommandChain commandChain) throws IOException {
+        def commandBytes = new ByteArrayOutputStream()
+        commandChain.writeTo(commandBytes)
+
+        def resultBytes = new ByteArrayOutputStream()
+        receiver.execute(new ByteArrayInputStream(commandBytes.toByteArray()), resultBytes)
+
+        resultFactory.deserialize(new ByteArrayInputStream(resultBytes.toByteArray()), classLoader)
+    }
 }

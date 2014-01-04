@@ -30,7 +30,7 @@ allprojects {
 apply from: "$rootDir/gradle/idea.gradle"
 
 def groovyModules = [
-        ":module:remote-core", ":module:remote-transport-local", ":module:remote-transport-http", ":module:remote-test-utils"
+        ":module:remote-core", ":module:remote-transport-local", ":module:remote-transport-http"
 ]
 
 def publishedModules = [
@@ -144,8 +144,7 @@ subprojects {
 project(':module:remote-core') {
     description "Provides the core of the remote library"
     dependencies {
-        testCompile project(":module:remote-transport-local"), project(":module:remote-using-lib"),
-                project(":module:remote-test-utils")
+        testCompile project(":module:remote-transport-local"), project(":module:remote-using-lib")
     }
 }
 

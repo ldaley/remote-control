@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package groovyx.remote.transport.http
+package groovyx.remote.transport.http.test
 
 import groovyx.remote.client.RemoteControl
 import groovyx.remote.server.Receiver
+import groovyx.remote.transport.http.HttpTransport
+import groovyx.remote.transport.http.RemoteControlServlet
+import groovyx.remote.util.FilteringClassLoader
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.servlet.ServletHolder
@@ -33,8 +36,7 @@ class RemoteControlServletSpec extends Specification {
         // we need to create a classloader for the "server" side that cannot access
         // classes defined in this file.
         def thisClassLoader = getClass().classLoader
-        def neededURLsForServer = thisClassLoader.getURLs().findAll { it.path.contains("groovy-all") }
-        def serverClassLoader = new URLClassLoader(neededURLsForServer as URL[], thisClassLoader.parent)
+        def serverClassLoader = new FilteringClassLoader(thisClassLoader, getClass().package.name)
 
         def receiver = new Receiver(serverClassLoader)
 

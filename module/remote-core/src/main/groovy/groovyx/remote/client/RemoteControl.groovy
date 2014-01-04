@@ -15,120 +15,125 @@
  */
 package groovyx.remote.client
 
-import groovyx.remote.*
+import groovyx.remote.CommandChain
+import groovyx.remote.result.*
 
 /**
  * Executes closures in a server, communicating via a Transport.
  */
 class RemoteControl {
 
-	final Transport transport
-	protected final CommandGenerator commandGenerator
+    final Transport transport
+    protected final CommandGenerator commandGenerator
 
-	/**
-	 * If set, {@code null} will be used as the return value if the actual return value was not serializable.
-	 *
-	 * This prevents a UnserializableReturnException from being thrown.
-	 */
-	boolean useNullIfResultWasUnserializable = false
+    /**
+     * If set, {@code null} will be used as the return value if the actual return value was not serializable.
+     *
+     * This prevents a UnserializableReturnException from being thrown.
+     */
+    boolean useNullIfResultWasUnserializable = false
 
-	/**
-	 * If set, the string representation of the actual return value will be used if the actual return value was not serializable.
-	 *
-	 * This prevents a UnserializableReturnException from being thrown.
-	 */
-	boolean useStringRepresentationIfResultWasUnserializable = false
+    /**
+     * If set, the string representation of the actual return value will be used if the actual return value was not serializable.
+     *
+     * This prevents a UnserializableReturnException from being thrown.
+     */
+    boolean useStringRepresentationIfResultWasUnserializable = false
 
-	/**
-	 * Creates a remote using the given transport and the current thread's contextClassLoader.
-	 *
-	 * @see RemoteControl(Transport, ClassLoader)
-	 */
-	RemoteControl(Transport transport) {
-		this(transport, Thread.currentThread().contextClassLoader)
-	}
+    /**
+     * Creates a remote using the given transport and the current thread's contextClassLoader.
+     *
+     * @see RemoteControl ( Transport , ClassLoader )
+     */
+    RemoteControl(Transport transport) {
+        this(transport, Thread.currentThread().contextClassLoader)
+    }
 
-	/**
-	 * Creates a remote using the given transport and the given classLoader.
-	 */
-	RemoteControl(Transport transport, ClassLoader classLoader) {
-		this(transport, new CommandGenerator(classLoader))
-	}
+    /**
+     * Creates a remote using the given transport and the given classLoader.
+     */
+    RemoteControl(Transport transport, ClassLoader classLoader) {
+        this(transport, new CommandGenerator(classLoader))
+    }
 
-	/**
-	 * Hook for subclasses to provide a custom command generator.
-	 */
-	protected RemoteControl(Transport transport, CommandGenerator commandGenerator) {
-		this.transport = transport
-		this.commandGenerator = commandGenerator
-	}
+    /**
+     * Hook for subclasses to provide a custom command generator.
+     */
+    protected RemoteControl(Transport transport, CommandGenerator commandGenerator) {
+        this.transport = transport
+        this.commandGenerator = commandGenerator
+    }
 
-	def exec(Closure[] commands) {
-		exec([:], commands)
-	}
+    def exec(Closure[] commands) {
+        exec([:], commands)
+    }
 
-	def exec(Map params, Closure[] commands) {
-		validateExecParams(params)
-		processExecParams(params)
-		processResult(sendCommandChain(generateCommandChain(params, commands)))
-	}
+    def exec(Map params, Closure[] commands) {
+        validateExecParams(params)
+        processExecParams(params)
+        processResult(sendCommandChain(generateCommandChain(params, commands)))
+    }
 
-	def call(Map params, Closure[] commands) {
-		exec(params, commands)
-	}
+    def call(Map params, Closure[] commands) {
+        exec(params, commands)
+    }
 
-	def call(Closure[] commands) {
-		exec(commands)
-	}
+    def call(Closure[] commands) {
+        exec(commands)
+    }
 
-	protected void processExecParams(Map params) {
-		params.usedClosures.each {
+    protected void processExecParams(Map params) {
+        params.usedClosures.each {
             Closure.metaClass.setAttribute(it, 'owner', null)
             Closure.metaClass.setAttribute(it, 'thisObject', null)
             it.delegate = null
             it.resolveStrategy = Closure.DELEGATE_ONLY
         }
-	}
+    }
 
-	protected void validateExecParams(Map params) {
-		def validators = execParamsValidators
-		params.each { key, value ->
-			if (!(key in validators.keySet())) {
-				throw new IllegalArgumentException("Unknown option '$key'")
-			}
-			if (!validators[key](value)) {
-				throw new IllegalArgumentException("'$key' option has illegal value")
-			}
-		}
-	}
+    protected void validateExecParams(Map params) {
+        def validators = execParamsValidators
+        params.each { key, value ->
+            if (!(key in validators.keySet())) {
+                throw new IllegalArgumentException("Unknown option '$key'")
+            }
+            if (!validators[key](value)) {
+                throw new IllegalArgumentException("'$key' option has illegal value")
+            }
+        }
+    }
 
-	protected Map<String, Class> getExecParamsValidators() {
-		['usedClosures': { it in Collection && it.every{ it in Closure } }]
-	}
+    protected Map<String, Class> getExecParamsValidators() {
+        ['usedClosures': { it in Collection && it.every { it in Closure } }]
+    }
 
-	protected CommandChain generateCommandChain(Map params, Closure[] commands) {
-		new CommandChain(commands: commands.collect { commandGenerator.generate(params, it) })
-	}
+    protected CommandChain generateCommandChain(Map params, Closure[] commands) {
+        new CommandChain(commands: commands.collect { commandGenerator.generate(params, it) })
+    }
 
-	protected Result sendCommandChain(CommandChain commandChain) {
-		transport.send(commandChain)
-	}
+    protected groovyx.remote.result.Result sendCommandChain(CommandChain commandChain) {
+        transport.send(commandChain)
+    }
 
-	protected processResult(Result result) {
-		if (result.wasNull) {
-			null
-		} else if (result.wasUnserializable) {
-			if (useNullIfResultWasUnserializable) {
-				null
-			} else if (useStringRepresentationIfResultWasUnserializable) {
-				result.stringRepresentation
-			} else {
-				throw new UnserializableReturnException(result)
-			}
-		} else if (result.thrown) {
-			throw new RemoteException(result.thrown)
-		} else {
-			result.value
-		}
-	}
+    protected processResult(Result result) {
+        if (result instanceof NullResult) {
+            null
+        } else if (result instanceof ThrownResult) {
+            throw new RemoteException(result.deserialize(commandGenerator.classLoader))
+        } else if (result instanceof UnserializableThrownResult) {
+            throw new RemoteException(result.deserializeWrapper(commandGenerator.classLoader))
+        } else if (result instanceof UnserializableResult) {
+            if (useNullIfResultWasUnserializable) {
+                null
+            } else if (useStringRepresentationIfResultWasUnserializable) {
+                result.stringRepresentation
+            } else {
+                throw new UnserializableReturnException(result)
+            }
+        } else if (result instanceof SerializedResult) {
+            result.deserialize(commandGenerator.classLoader)
+        } else {
+            throw new IllegalArgumentException("Unknown result type: " + result)
+        }
+    }
 }

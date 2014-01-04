@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package groovyx.remote.transport.http
+package groovyx.remote.transport.http.test
 
 import groovyx.remote.client.*
 import groovyx.remote.server.*
 import com.sun.net.httpserver.HttpServer
+import groovyx.remote.transport.http.HttpTransport
+import groovyx.remote.transport.http.RemoteControlHttpHandler
+import groovyx.remote.util.FilteringClassLoader
+
 import java.util.concurrent.Executors
 
 import spock.lang.*
@@ -31,8 +35,7 @@ class RemoteControlHttpHandlerSpec extends Specification {
 		// we need to create a classloader for the "server" side that cannot access
 		// classes defined in this file.
 		def thisClassLoader = getClass().classLoader
-		def neededURLsForServer = thisClassLoader.getURLs().findAll { it.path.contains("groovy-all") }
-		def serverClassLoader = new URLClassLoader(neededURLsForServer as URL[], thisClassLoader.parent)
+		def serverClassLoader = new FilteringClassLoader(thisClassLoader, getClass().getPackage().name)
 		
 		def receiver = new Receiver(serverClassLoader)
 		

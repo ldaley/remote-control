@@ -16,13 +16,13 @@
 package groovyx.remote.client
 
 import groovyx.remote.CommandChain
-import groovyx.remote.Result
+import groovyx.remote.result.Result
 
 /**
  * A transport is used by a remote control for sending a command and receiving the result.
  */
 interface Transport {
-	
-	Result send(CommandChain commandChain) throws IOException
-	
+
+    Result send(CommandChain commandChain) throws IOException
+
 }

@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package groovyx.remote
+package groovyx.remote.test
 
 import groovyx.remote.client.RemoteControl
 import groovyx.remote.client.RemoteException
 import groovyx.remote.client.UnserializableReturnException
 import groovyx.remote.server.Receiver
-import groovyx.remote.test.UnserializableException
+import groovyx.remote.UnserializableException
 import groovyx.remote.transport.local.LocalTransport
+import groovyx.remote.util.FilteringClassLoader
+import groovyx.remote.UnserializableExceptionException
 
 /**
  * This test case shows how to use the remote control and some of it's limitations
@@ -50,9 +52,7 @@ class SmokeTests extends GroovyTestCase {
             // we need to create a classloader for the "server" side that cannot access
             // classes defined in this file.
             def thisClassLoader = getClass().classLoader
-            def neededURLsForServer = thisClassLoader.getURLs().findAll { it.path.contains("groovy-all") }
-            neededURLsForServer.addAll thisClassLoader.getURLs().findAll { it.path.contains("remote-test-utils") }
-            def serverClassLoader = new URLClassLoader(neededURLsForServer as URL[], thisClassLoader.parent)
+            def serverClassLoader = new FilteringClassLoader(thisClassLoader, "groovyx.remote.test")
 
             def receiver = new Receiver(serverClassLoader)
             def transport = new LocalTransport(receiver, thisClassLoader)
@@ -129,7 +129,7 @@ class SmokeTests extends GroovyTestCase {
             }
         } catch (RemoteException e) {
             assert e.cause.class == UnserializableExceptionException // also
-            assert e.cause.message == "wrapped unserializable exception: class = groovyx.remote.test.UnserializableException, message = \"null\""
+            assert e.cause.message == "wrapped unserializable exception: class = groovyx.remote.UnserializableException, message = \"null\""
             assert e.cause.cause.class == UnserializableExceptionException // also
             assert e.cause.cause.message == "wrapped unserializable exception: class = java.lang.Exception, message = \"cause foo\""
         }

@@ -15,72 +15,86 @@
  */
 package groovyx.remote.transport.http
 
-import groovyx.remote.*
-import groovyx.remote.util.*
+import groovyx.remote.CommandChain
+import groovyx.remote.RemoteControlException
 import groovyx.remote.client.Transport
+import groovyx.remote.result.Result
+import groovyx.remote.result.ResultFactory
+import groovyx.remote.result.impl.DefaultResultFactory
 
 /**
  * Transports commands over http to the given receiver address.
  */
 class HttpTransport implements Transport {
 
-	final receiverAddress
-	final classLoader
-	
-	/**
-	 * @param receiverAddress the full address to the remote receiver
-	 * @param classLoader the class loader to use when unserialising the result
-	 */
-	HttpTransport(String receiverAddress, ClassLoader classLoader) {
-		this.classLoader = classLoader
-		this.receiverAddress = receiverAddress
-	}
+    final receiverAddress
+    final ClassLoader classLoader
+    final ResultFactory resultFactory
 
-	/**
-	 * @param receiverAddress the full address to the remote receiver
-	 */
-	HttpTransport(String receiverAddress) {
-		this(receiverAddress, Thread.currentThread().contextClassLoader)
-	}
+    /**
+     * @param receiverAddress the full address to the remote receiver
+     * @param classLoader the class loader to use when unserialising the result
+     */
+    HttpTransport(String receiverAddress, ClassLoader classLoader, ResultFactory resultFactory) {
+        this.classLoader = classLoader
+        this.receiverAddress = receiverAddress
+        this.resultFactory = resultFactory
+    }
 
-	/**
-	 * Serialises the Command and sends it over HTTP, returning the Result.
-	 * 
-	 * @throws IOException if there is any issue with the receiver.
-	 */
-	Result send(CommandChain commandChain) throws RemoteControlException {
-		try {
-			openConnection().with {
-				setRequestProperty("Content-Type", ContentType.COMMAND.value)
-				setRequestProperty("accept", ContentType.RESULT.value)
-				instanceFollowRedirects = true
-				doOutput = true
+    /**
+     * @param receiverAddress the full address to the remote receiver
+     * @param classLoader the class loader to use when unserialising the result
+     */
+    HttpTransport(String receiverAddress, ClassLoader classLoader) {
+        this(receiverAddress, classLoader, new DefaultResultFactory())
+    }
 
-				configureConnection(delegate)
+    /**
+     * @param receiverAddress the full address to the remote receiver
+     */
+    HttpTransport(String receiverAddress) {
+        this(receiverAddress, Thread.currentThread().contextClassLoader)
+    }
 
-				commandChain.writeTo(outputStream)
-				Result.readFrom(inputStream, classLoader)
-			}
-		} catch (Exception e) {
-			throw new RemoteControlException("Error sending command chain to '$receiverAddress'", e)
-		}
-	}
-	
-	/**
-	 * Subclass hook for configuring the connection object before the request is set.
-	 * 
-	 * This could be used to implement authentication.
-	 */
-	@SuppressWarnings("EmptyMethod")
-	protected configureConnection(HttpURLConnection connection) {
-		
-	}
-	
-	/**
-	 * Creates a HttpURLConnection to the remote receiver at the given receiverAddress.
-	 */
-	protected HttpURLConnection openConnection() {
-		new URL(receiverAddress).openConnection()
-	}
+    /**
+     * Serialises the Command and sends it over HTTP, returning the Result.
+     *
+     * @throws IOException if there is any issue with the receiver.
+     */
+    Result send(CommandChain commandChain) throws RemoteControlException {
+        try {
+            openConnection().with {
+                setRequestProperty("Content-Type", ContentType.COMMAND.value)
+                setRequestProperty("accept", ContentType.RESULT.value)
+                instanceFollowRedirects = true
+                doOutput = true
+
+                configureConnection(delegate)
+
+                commandChain.writeTo(outputStream)
+
+                resultFactory.deserialize(inputStream, classLoader)
+            }
+        } catch (Exception e) {
+            throw new RemoteControlException("Error sending command chain to '$receiverAddress'", e)
+        }
+    }
+
+    /**
+     * Subclass hook for configuring the connection object before the request is set.
+     *
+     * This could be used to implement authentication.
+     */
+    @SuppressWarnings("EmptyMethod")
+    protected configureConnection(HttpURLConnection connection) {
+
+    }
+
+    /**
+     * Creates a HttpURLConnection to the remote receiver at the given receiverAddress.
+     */
+    protected HttpURLConnection openConnection() {
+        new URL(receiverAddress).openConnection()
+    }
 
 }

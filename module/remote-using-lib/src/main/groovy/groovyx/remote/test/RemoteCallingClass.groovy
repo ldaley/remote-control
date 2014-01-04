@@ -1,4 +1,4 @@
-package groovyx.remote
+package groovyx.remote.test
 
 import groovyx.remote.client.RemoteControl
 

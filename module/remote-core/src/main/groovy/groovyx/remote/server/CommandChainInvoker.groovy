@@ -16,39 +16,39 @@
 package groovyx.remote.server
 
 import groovyx.remote.*
-import groovyx.remote.util.*
+import groovyx.remote.result.ResultFactory
 
 class CommandChainInvoker {
 	
 	final ClassLoader parentLoader
 	final CommandChain commandChain
+    private final ResultFactory resultFactory
 
-	CommandChainInvoker(ClassLoader parentLoader, CommandChain commandChain) {
-		this.parentLoader = parentLoader
+    CommandChainInvoker(ClassLoader parentLoader, CommandChain commandChain, ResultFactory resultFactory) {
+        this.resultFactory = resultFactory
+        this.parentLoader = parentLoader
 		this.commandChain = commandChain
 	}
 	
-	Result invokeAgainst(delegate, firstArg = null) {
+	groovyx.remote.result.Result invokeAgainst(delegate, firstArg = null) {
 		def arg = firstArg
 		def lastResult = null
 		def lastCommand = commandChain.commands.last()
 		
 		for (command in commandChain.commands) {
-			lastResult = createInvoker(parentLoader, command).invokeAgainst(delegate, arg)
+            def invoker = createInvoker(parentLoader, command)
+            try {
+                lastResult = invoker.invokeAgainst(delegate, arg)
+            } catch (Throwable throwable) {
+                return resultFactory.forThrown(throwable)
+            }
 			
 			if (command != lastCommand) {
-				if (lastResult.thrown) {
-					return lastResult
-				} else if (lastResult.wasUnserializable) {
-					// unserializable is ok when chaining
-					arg = lastResult.unserializable
-				} else {
-					arg = lastResult.value
-				}
+                arg = lastResult
 			}
 		}
 		
-		lastResult
+		resultFactory.forValue(lastResult)
 	}
 
 	protected createInvoker(ClassLoader loader, Command command) {
