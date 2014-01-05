@@ -30,11 +30,6 @@ public class CommandGenerator {
         this.classLoader = classLoader;
     }
 
-
-    public final ClassLoader getClassLoader() {
-        return classLoader;
-    }
-
     /**
      * For the given closure, generate a command object.
      */
@@ -115,6 +110,5 @@ public class CommandGenerator {
         ClosureUtil.nullFields(root);
         return SerializationUtil.serialize(closure);
     }
-
 
 }

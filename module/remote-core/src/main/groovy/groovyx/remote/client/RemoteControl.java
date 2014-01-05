@@ -19,6 +19,7 @@ public class RemoteControl {
 
     private final Transport transport;
     private final CommandGenerator commandGenerator;
+    private final ClassLoader classLoader;
 
     private boolean useNullIfResultWasUnserializable = false;
     private boolean useStringRepresentationIfResultWasUnserializable = false;
@@ -36,15 +37,16 @@ public class RemoteControl {
      * Creates a remote using the given transport and the given classLoader.
      */
     public RemoteControl(Transport transport, ClassLoader classLoader) {
-        this(transport, new CommandGenerator(classLoader));
+        this(transport, new CommandGenerator(classLoader), classLoader);
     }
 
     /**
      * Hook for subclasses to provide a custom command generator.
      */
-    protected RemoteControl(Transport transport, CommandGenerator commandGenerator) {
+    protected RemoteControl(Transport transport, CommandGenerator commandGenerator, ClassLoader classLoader) {
         this.transport = transport;
         this.commandGenerator = commandGenerator;
+        this.classLoader = classLoader;
     }
 
     /**
@@ -133,10 +135,10 @@ public class RemoteControl {
             return null;
         } else if (result instanceof ThrownResult) {
             ThrownResult thrownResult = (ThrownResult) result;
-            throw new RemoteException(thrownResult.deserialize(commandGenerator.getClassLoader()));
+            throw new RemoteException(thrownResult.deserialize(classLoader));
         } else if (result instanceof UnserializableThrownResult) {
             UnserializableThrownResult unserializedThrownResult = (UnserializableThrownResult) result;
-            throw new RemoteException(unserializedThrownResult.deserializeWrapper(commandGenerator.getClassLoader()));
+            throw new RemoteException(unserializedThrownResult.deserializeWrapper(classLoader));
         } else if (result instanceof UnserializableResult) {
             UnserializableResult unserializableResult = (UnserializableResult) result;
             if (useNullIfResultWasUnserializable) {
@@ -148,7 +150,7 @@ public class RemoteControl {
             }
         } else if (result instanceof SerializedResult) {
             SerializedResult serializedResult = (SerializedResult) result;
-            return serializedResult.deserialize(commandGenerator.getClassLoader());
+            return serializedResult.deserialize(classLoader);
         } else {
             throw new IllegalArgumentException("Unknown result type: " + result);
         }
