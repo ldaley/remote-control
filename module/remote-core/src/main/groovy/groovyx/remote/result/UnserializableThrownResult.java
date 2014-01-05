@@ -18,10 +18,8 @@ package groovyx.remote.result;
 
 import groovyx.remote.UnserializableExceptionException;
 
-import java.io.NotSerializableException;
-
 public interface UnserializableThrownResult extends UnserializableResult {
 
-    UnserializableExceptionException deserializeWrapper(ClassLoader classLoader) throws ClassNotFoundException;
+    UnserializableExceptionException deserializeWrapper(ClassLoader classLoader);
 
 }

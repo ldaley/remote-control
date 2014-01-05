@@ -25,6 +25,6 @@ public interface ResultFactory {
 
     Result forThrown(Throwable throwable);
 
-    Result deserialize(InputStream inputStream, ClassLoader classLoader) throws IOException, ClassNotFoundException;
+    Result deserialize(InputStream inputStream, ClassLoader classLoader) throws IOException;
 
 }

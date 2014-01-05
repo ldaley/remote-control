@@ -16,6 +16,7 @@
 
 package groovyx.remote.result.impl;
 
+import groovyx.remote.RemoteControlException;
 import groovyx.remote.SerializationUtil;
 import groovyx.remote.result.SerializedResult;
 
@@ -28,8 +29,12 @@ public class DefaultSerializedResult implements SerializedResult {
     }
 
     @Override
-    public Object deserialize(ClassLoader classLoader) throws ClassNotFoundException {
-        return SerializationUtil.deserialize(Object.class, bytes, classLoader);
+    public Object deserialize(ClassLoader classLoader) {
+        try {
+            return SerializationUtil.deserialize(Object.class, bytes, classLoader);
+        } catch (ClassNotFoundException e) {
+            throw RemoteControlException.classNotFoundOnClient(e);
+        }
     }
 
 }

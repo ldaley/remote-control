@@ -25,7 +25,7 @@ public class DefaultThrownResult extends DefaultSerializedResult implements Thro
     }
 
     @Override
-    public Throwable deserialize(ClassLoader classLoader) throws ClassNotFoundException {
+    public Throwable deserialize(ClassLoader classLoader) {
         Object deserialized = super.deserialize(classLoader);
         return (Throwable) deserialized;
     }

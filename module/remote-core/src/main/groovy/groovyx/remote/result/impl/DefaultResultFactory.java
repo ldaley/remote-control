@@ -16,6 +16,7 @@
 
 package groovyx.remote.result.impl;
 
+import groovyx.remote.RemoteControlException;
 import groovyx.remote.SerializationUtil;
 import groovyx.remote.UnserializableExceptionException;
 import groovyx.remote.result.Result;
@@ -67,9 +68,12 @@ public class DefaultResultFactory implements ResultFactory {
     }
 
     @Override
-    public Result deserialize(InputStream inputStream, ClassLoader classLoader) throws IOException, ClassNotFoundException {
-        return SerializationUtil.deserialize(Result.class, inputStream, classLoader);
+    public Result deserialize(InputStream inputStream, ClassLoader classLoader) throws IOException {
+        try {
+            return SerializationUtil.deserialize(Result.class, inputStream, classLoader);
+        } catch (ClassNotFoundException e) {
+            throw RemoteControlException.classNotFoundOnClient(e);
+        }
     }
-
 
 }

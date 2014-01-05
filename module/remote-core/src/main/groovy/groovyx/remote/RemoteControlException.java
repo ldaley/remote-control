@@ -30,4 +30,12 @@ public class RemoteControlException extends RuntimeException {
 		}
 	}
 
+    public static RemoteControlException classNotFoundOnServer(ClassNotFoundException e) {
+        return new RemoteControlException("Class not found on server (the command referenced a class that the server does not have)", e);
+    }
+
+    public static RemoteControlException classNotFoundOnClient(ClassNotFoundException e) {
+        return new RemoteControlException("Class not found on client (the result referenced a class that the client does not have)", e);
+    }
+
 }

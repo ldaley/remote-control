@@ -2,6 +2,7 @@ package groovyx.remote.server;
 
 import groovy.lang.Closure;
 import groovyx.remote.CommandChain;
+import groovyx.remote.RemoteControlException;
 import groovyx.remote.SerializationUtil;
 import groovyx.remote.result.Result;
 import groovyx.remote.result.ResultFactory;
@@ -117,8 +118,14 @@ public class Receiver {
      * @param input A stream containing a serialised CommandChain object.
      * @param output The stream that the Result object shall be written to.
      */
-    public void execute(InputStream input, OutputStream output) throws IOException, ClassNotFoundException {
-        Result resultObject = invokeCommandChain(SerializationUtil.deserialize(CommandChain.class, input, classLoader));
+    public void execute(InputStream input, OutputStream output) throws IOException {
+        CommandChain deserialize;
+        try {
+            deserialize = SerializationUtil.deserialize(CommandChain.class, input, classLoader);
+        } catch (ClassNotFoundException e) {
+            throw RemoteControlException.classNotFoundOnServer(e);
+        }
+        Result resultObject = invokeCommandChain(deserialize);
         SerializationUtil.serialize(resultObject, output);
     }
 

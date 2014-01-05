@@ -18,6 +18,6 @@ package groovyx.remote.result;
 
 public interface ThrownResult extends SerializedResult {
 
-    Throwable deserialize(ClassLoader classLoader) throws ClassNotFoundException;
+    Throwable deserialize(ClassLoader classLoader);
 
 }

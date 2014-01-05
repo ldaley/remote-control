@@ -19,6 +19,7 @@ package groovyx.remote.server;
 import groovy.lang.Closure;
 import groovy.lang.GroovyClassLoader;
 import groovyx.remote.Command;
+import groovyx.remote.RemoteControlException;
 import groovyx.remote.SerializationUtil;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 
@@ -58,7 +59,7 @@ public class CommandInvoker {
         }
     }
 
-    protected Closure<?> instantiate() throws IOException, ClassNotFoundException {
+    protected Closure<?> instantiate() throws IOException {
         final GroovyClassLoader classLoader = new GroovyClassLoader(parentLoader);
         SerializationUtil.defineClass(classLoader, command.getRoot());
 
@@ -66,7 +67,11 @@ public class CommandInvoker {
             SerializationUtil.defineClass(classLoader, bytes);
         }
 
-        return SerializationUtil.deserialize(Closure.class, command.getInstance(), classLoader);
+        try {
+            return SerializationUtil.deserialize(Closure.class, command.getInstance(), classLoader);
+        } catch (ClassNotFoundException e) {
+            throw RemoteControlException.classNotFoundOnServer(e);
+        }
     }
 
 }

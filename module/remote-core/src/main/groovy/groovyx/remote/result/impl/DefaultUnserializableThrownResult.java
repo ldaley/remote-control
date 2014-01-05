@@ -16,6 +16,7 @@
 
 package groovyx.remote.result.impl;
 
+import groovyx.remote.RemoteControlException;
 import groovyx.remote.SerializationUtil;
 import groovyx.remote.UnserializableExceptionException;
 import groovyx.remote.result.UnserializableThrownResult;
@@ -30,8 +31,12 @@ public class DefaultUnserializableThrownResult extends DefaultUnserializableResu
     }
 
     @Override
-    public UnserializableExceptionException deserializeWrapper(ClassLoader classLoader) throws ClassNotFoundException {
-        return SerializationUtil.deserialize(UnserializableExceptionException.class, notSerializableException, classLoader);
+    public UnserializableExceptionException deserializeWrapper(ClassLoader classLoader) {
+        try {
+            return SerializationUtil.deserialize(UnserializableExceptionException.class, notSerializableException, classLoader);
+        } catch (ClassNotFoundException e) {
+            throw RemoteControlException.classNotFoundOnClient(e);
+        }
     }
 
 }

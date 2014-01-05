@@ -129,32 +129,28 @@ public class RemoteControl {
     }
 
     protected Object processResult(Result result) {
-        try {
-            if (result instanceof NullResult) {
+        if (result instanceof NullResult) {
+            return null;
+        } else if (result instanceof ThrownResult) {
+            ThrownResult thrownResult = (ThrownResult) result;
+            throw new RemoteException(thrownResult.deserialize(commandGenerator.getClassLoader()));
+        } else if (result instanceof UnserializableThrownResult) {
+            UnserializableThrownResult unserializedThrownResult = (UnserializableThrownResult) result;
+            throw new RemoteException(unserializedThrownResult.deserializeWrapper(commandGenerator.getClassLoader()));
+        } else if (result instanceof UnserializableResult) {
+            UnserializableResult unserializableResult = (UnserializableResult) result;
+            if (useNullIfResultWasUnserializable) {
                 return null;
-            } else if (result instanceof ThrownResult) {
-                ThrownResult thrownResult = (ThrownResult) result;
-                throw new RemoteException(thrownResult.deserialize(commandGenerator.getClassLoader()));
-            } else if (result instanceof UnserializableThrownResult) {
-                UnserializableThrownResult unserializedThrownResult = (UnserializableThrownResult) result;
-                throw new RemoteException(unserializedThrownResult.deserializeWrapper(commandGenerator.getClassLoader()));
-            } else if (result instanceof UnserializableResult) {
-                UnserializableResult unserializableResult = (UnserializableResult) result;
-                if (useNullIfResultWasUnserializable) {
-                    return null;
-                } else if (useStringRepresentationIfResultWasUnserializable) {
-                    return unserializableResult.getStringRepresentation();
-                } else {
-                    throw new UnserializableReturnException(unserializableResult);
-                }
-            } else if (result instanceof SerializedResult) {
-                SerializedResult serializedResult = (SerializedResult) result;
-                return serializedResult.deserialize(commandGenerator.getClassLoader());
+            } else if (useStringRepresentationIfResultWasUnserializable) {
+                return unserializableResult.getStringRepresentation();
             } else {
-                throw new IllegalArgumentException("Unknown result type: " + result);
+                throw new UnserializableReturnException(unserializableResult);
             }
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        } else if (result instanceof SerializedResult) {
+            SerializedResult serializedResult = (SerializedResult) result;
+            return serializedResult.deserialize(commandGenerator.getClassLoader());
+        } else {
+            throw new IllegalArgumentException("Unknown result type: " + result);
         }
     }
 

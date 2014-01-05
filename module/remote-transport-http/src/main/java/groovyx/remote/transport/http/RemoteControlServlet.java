@@ -23,11 +23,7 @@ public class RemoteControlServlet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         if (validateRequest(request, response)) {
             configureSuccessfulResponse(response);
-            try {
-                doExecute(request.getInputStream(), response.getOutputStream());
-            } catch (ClassNotFoundException e) {
-                throw new ServletException("Could not execute command", e);
-            }
+            doExecute(request.getInputStream(), response.getOutputStream());
         }
     }
 
@@ -62,7 +58,7 @@ public class RemoteControlServlet extends HttpServlet {
     /**
      * Hook for subclasses to wrap the actual execution.
      */
-    protected void doExecute(InputStream input, OutputStream output) throws IOException, ClassNotFoundException {
+    protected void doExecute(InputStream input, OutputStream output) throws IOException {
         Receiver receiver = createReceiver();
         receiver.execute(input, output);
     }
