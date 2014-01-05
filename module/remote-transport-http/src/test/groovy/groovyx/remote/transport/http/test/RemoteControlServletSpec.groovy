@@ -15,7 +15,8 @@
  */
 package groovyx.remote.transport.http.test
 
-import groovyx.remote.client.RemoteControl
+import groovyx.remote.groovy.client.RemoteControl
+import groovyx.remote.groovy.server.ClosureReceiver
 import groovyx.remote.server.Receiver
 import groovyx.remote.transport.http.HttpTransport
 import groovyx.remote.transport.http.RemoteControlServlet
@@ -28,9 +29,12 @@ import spock.lang.Specification
 
 class RemoteControlServletSpec extends Specification {
 
-    @Shared remote
-    @Shared server
-    @Shared endpointUrl
+    @Shared
+        remote
+    @Shared
+        server
+    @Shared
+        endpointUrl
 
     def setupSpec() {
         // we need to create a classloader for the "server" side that cannot access
@@ -38,11 +42,14 @@ class RemoteControlServletSpec extends Specification {
         def thisClassLoader = getClass().classLoader
         def serverClassLoader = new FilteringClassLoader(thisClassLoader, getClass().package.name)
 
-        def receiver = new Receiver(serverClassLoader)
-
         server = new Server(0)
         def context = new Context(server, "/")
-        def servlet = [createReceiver: {-> new Receiver(serverClassLoader) }] as RemoteControlServlet
+        def servlet = new RemoteControlServlet() {
+            @Override
+            protected Receiver createReceiver() {
+                return new ClosureReceiver(serverClassLoader)
+            }
+        }
         context.addServlet(new ServletHolder(servlet), "/*")
         server.start()
 

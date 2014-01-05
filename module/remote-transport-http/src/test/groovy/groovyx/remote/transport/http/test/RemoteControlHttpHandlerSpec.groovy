@@ -15,46 +15,48 @@
  */
 package groovyx.remote.transport.http.test
 
-import groovyx.remote.client.*
-import groovyx.remote.server.*
 import com.sun.net.httpserver.HttpServer
+import groovyx.remote.groovy.client.RemoteControl
+import groovyx.remote.groovy.server.ClosureReceiver
 import groovyx.remote.transport.http.HttpTransport
 import groovyx.remote.transport.http.RemoteControlHttpHandler
 import groovyx.remote.util.FilteringClassLoader
+import spock.lang.Shared
+import spock.lang.Specification
 
 import java.util.concurrent.Executors
 
-import spock.lang.*
-
 class RemoteControlHttpHandlerSpec extends Specification {
 
-	@Shared remote
-	@Shared server
-	
-	def setupSpec() {
-		// we need to create a classloader for the "server" side that cannot access
-		// classes defined in this file.
-		def thisClassLoader = getClass().classLoader
-		def serverClassLoader = new FilteringClassLoader(thisClassLoader, getClass().getPackage().name)
-		
-		def receiver = new Receiver(serverClassLoader)
-		
-		server = HttpServer.create(new InetSocketAddress(0), 1)
-		server.createContext("/", new RemoteControlHttpHandler(receiver))
-		server.executor = Executors.newSingleThreadExecutor()
-		server.start()
-	
-		Thread.sleep(2000)
-		
-		remote = new RemoteControl(new HttpTransport("http://localhost:${server.address.port}" as String))
-	}
+    @Shared
+        remote
+    @Shared
+        server
 
-	def "test the handler"() {
-		expect:
-		remote.exec { def a = 2; a + 2 } == 4
-	}
-	
-	def cleanupSpec() {
-		server.stop(0)
-	}
+    def setupSpec() {
+        // we need to create a classloader for the "server" side that cannot access
+        // classes defined in this file.
+        def thisClassLoader = getClass().classLoader
+        def serverClassLoader = new FilteringClassLoader(thisClassLoader, getClass().getPackage().name)
+
+        def receiver = new ClosureReceiver(serverClassLoader)
+
+        server = HttpServer.create(new InetSocketAddress(0), 1)
+        server.createContext("/", new RemoteControlHttpHandler(receiver))
+        server.executor = Executors.newSingleThreadExecutor()
+        server.start()
+
+        Thread.sleep(2000)
+
+        remote = new RemoteControl(new HttpTransport("http://localhost:${server.address.port}" as String))
+    }
+
+    def "test the handler"() {
+        expect:
+        remote.exec { def a = 2; a + 2 } == 4
+    }
+
+    def cleanupSpec() {
+        server.stop(0)
+    }
 }

@@ -10,6 +10,6 @@ import java.io.IOException;
  */
 public interface Transport {
 
-    public abstract Result send(CommandChain commandChain) throws IOException;
+    public abstract Result send(CommandChain<?> commandChain) throws IOException;
 
 }

@@ -14,7 +14,7 @@ import java.io.OutputStream;
 /**
  * A servlet implementation for receiving commands.
  */
-public class RemoteControlServlet extends HttpServlet {
+public abstract class RemoteControlServlet extends HttpServlet {
 
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -68,8 +68,5 @@ public class RemoteControlServlet extends HttpServlet {
      *
      * This implement returns a receiver created via the default constructor.
      */
-    protected Receiver createReceiver() {
-        return new Receiver();
-    }
-
+    abstract protected Receiver createReceiver();
 }

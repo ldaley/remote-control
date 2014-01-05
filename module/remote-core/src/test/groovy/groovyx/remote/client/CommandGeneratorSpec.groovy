@@ -15,15 +15,17 @@
  */
 package groovyx.remote.client
 
-import spock.lang.*
+import groovyx.remote.groovy.client.ClosureCommandGenerator
+import groovyx.remote.groovy.client.RawClosureCommand
+import spock.lang.Specification
 
 class CommandGeneratorSpec extends Specification {
 
-	def generator = new CommandGenerator(this.getClass().classLoader)
+	def generator = new ClosureCommandGenerator(this.getClass().classLoader)
 	
-	def "support size"() {
+	def "support size"(Closure<?> command, int size) {
 		expect:
-		generator.generate([:], command).supports.size() == size
+		generator.generate(new RawClosureCommand(command, Collections.emptyList())).supports.size() == size
 		where:
 		command                                                              | size
 		{ -> "123" }                                                         | 0

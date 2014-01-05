@@ -1,4 +1,4 @@
-package groovyx.remote.client;
+package groovyx.remote.groovy.client;
 
 import groovy.lang.Closure;
 import groovyx.remote.util.IoUtil;

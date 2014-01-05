@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package groovyx.remote.util
+package groovyx.remote.server;
 
-class ClosureUtil {
+import groovyx.remote.Command;
+import groovyx.remote.CommandChain;
+import groovyx.remote.result.Result;
 
-    public static void nullFields(Closure<?> closure) {
-        Closure.metaClass.setAttribute(closure, 'owner', null)
-        Closure.metaClass.setAttribute(closure, 'thisObject', null)
-        Closure.metaClass.setAttribute(closure, 'delegate', null)
-    }
+public interface CommandRunner<T extends Command> {
+
+    Class<T> getType();
+
+    Result run(CommandChain<T> commandChain);
 
 }

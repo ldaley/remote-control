@@ -1,6 +1,6 @@
 package groovyx.remote.test
 
-import groovyx.remote.client.RemoteControl
+import groovyx.remote.groovy.client.RemoteControl
 
 class RemoteCallingClass {
 	RemoteControl remote

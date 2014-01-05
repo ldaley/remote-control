@@ -16,14 +16,16 @@
 
 package groovyx.remote.test
 
-import groovyx.remote.client.RemoteControl
+import groovyx.remote.client.UnserializableResultStrategy
+import groovyx.remote.groovy.client.RemoteControl
 import groovyx.remote.client.RemoteException
 import groovyx.remote.client.UnserializableReturnException
-import groovyx.remote.server.Receiver
+import groovyx.remote.groovy.server.ClosureReceiver
 import groovyx.remote.UnserializableException
 import groovyx.remote.transport.local.LocalTransport
 import groovyx.remote.util.FilteringClassLoader
 import groovyx.remote.UnserializableExceptionException
+import groovyx.remote.UnserializableCommandException
 
 /**
  * This test case shows how to use the remote control and some of it's limitations
@@ -45,19 +47,22 @@ class SmokeTests extends GroovyTestCase {
 
     // Used in a later test
     def anIvar = 2
-    static RemoteControl remote
+
+    def remote
+    def transport
+    def clientClassLoader
 
     void setUp() {
         if (remote == null) {
             // we need to create a classloader for the "server" side that cannot access
             // classes defined in this file.
-            def thisClassLoader = getClass().classLoader
-            def serverClassLoader = new FilteringClassLoader(thisClassLoader, "groovyx.remote.test")
+            clientClassLoader = getClass().classLoader
 
-            def receiver = new Receiver(serverClassLoader)
-            def transport = new LocalTransport(receiver, thisClassLoader)
+            def serverClassLoader = new FilteringClassLoader(clientClassLoader, "groovyx.remote.test")
+            def receiver = new ClosureReceiver(serverClassLoader)
 
-            remote = new RemoteControl(transport, thisClassLoader)
+            transport = new LocalTransport(receiver, clientClassLoader)
+            remote = new RemoteControl(transport, clientClassLoader)
         }
     }
 
@@ -136,21 +141,13 @@ class SmokeTests extends GroovyTestCase {
     }
 
     void testCanSpecifyToUseNullIfReturnWasUnserializable() {
-        remote.useNullIfResultWasUnserializable = true
-        try {
-            assert remote.exec { System.out } == null
-        } finally {
-            remote.useNullIfResultWasUnserializable = false
-        }
+        remote = new RemoteControl(transport, UnserializableResultStrategy.NULL, clientClassLoader)
+        assert remote.exec { System.out } == null
     }
 
     void testCanSpecifyToUseStringRepresentationIfReturnWasUnserializable() {
-        remote.useStringRepresentationIfResultWasUnserializable = true
-        try {
-            assert remote.exec { System.out }.contains("Stream")
-        } finally {
-            remote.useStringRepresentationIfResultWasUnserializable = false
-        }
+        remote = new RemoteControl(transport, UnserializableResultStrategy.STRING, clientClassLoader)
+        assert remote.exec { System.out }.contains("Stream")
     }
 
     /**
@@ -173,7 +170,7 @@ class SmokeTests extends GroovyTestCase {
      */
     void testAccessingNonSerializableLexicalScope() {
         def a = System.out
-        shouldFail(NotSerializableException) {
+        shouldFail(UnserializableCommandException) {
             remote.exec { a }
         }
     }
@@ -217,7 +214,7 @@ class SmokeTests extends GroovyTestCase {
      * Like everything else, currying args must be serialisable
      */
     void testCurryingArgsMustBeSerializable() {
-        shouldFail(NotSerializableException) {
+        shouldFail(UnserializableCommandException) {
             remote.exec({ it }.curry(System.out))
         }
     }
@@ -292,8 +289,8 @@ class SmokeTests extends GroovyTestCase {
      */
     void testCanUseDelegateStorageAlongChain() {
         remote.exec(
-                { num = 1 },
-                { num = num + 1 }
+            { num = 1 },
+            { num = num + 1 }
         ) { num + 1 } == 3
     }
 

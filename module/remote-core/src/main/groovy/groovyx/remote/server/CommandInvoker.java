@@ -18,7 +18,7 @@ package groovyx.remote.server;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyClassLoader;
-import groovyx.remote.Command;
+import groovyx.remote.groovy.ClosureCommand;
 import groovyx.remote.RemoteControlException;
 import groovyx.remote.SerializationUtil;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
@@ -28,9 +28,9 @@ import java.io.IOException;
 public class CommandInvoker {
 
     private final ClassLoader parentLoader;
-    private final Command command;
+    private final ClosureCommand command;
 
-    public CommandInvoker(ClassLoader parentLoader, Command command) {
+    public CommandInvoker(ClassLoader parentLoader, ClosureCommand command) {
         this.parentLoader = parentLoader;
         this.command = command;
     }

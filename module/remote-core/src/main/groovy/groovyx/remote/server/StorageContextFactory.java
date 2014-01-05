@@ -2,6 +2,7 @@ package groovyx.remote.server;
 
 import groovy.lang.Closure;
 import groovyx.remote.CommandChain;
+import groovyx.remote.groovy.server.ContextFactory;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.Map;
  *
  * Note that this class is abstract, but provides static methods to produce context factory instances.
  *
- * @see groovyx.remote.server.ContextFactory
+ * @see groovyx.remote.groovy.server.ContextFactory
  * @see groovyx.remote.server.Storage
  * @see groovyx.remote.server.Receiver
  */

@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package groovyx.remote.server;
+package groovyx.remote.client;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-public interface Receiver {
-
-    /**
-     * Executes a serialised command chain.
-     *
-     * @param commandStream A stream containing a serialised {@link groovyx.remote.CommandChain} object.
-     * @param resultStream The stream that the {@link groovyx.remote.result.Result} object shall be written to.
-     */
-    void execute(InputStream commandStream, OutputStream resultStream) throws IOException;
-
+public enum UnserializableResultStrategy {
+    THROW,
+    NULL,
+    STRING
 }

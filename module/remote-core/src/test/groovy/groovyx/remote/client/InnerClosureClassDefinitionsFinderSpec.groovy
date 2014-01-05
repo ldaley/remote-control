@@ -15,6 +15,7 @@
  */
 package groovyx.remote.client
 
+import groovyx.remote.groovy.client.InnerClosureClassDefinitionsFinder
 import spock.lang.*
 
 class InnerClosureClassDefinitionsFinderSpec extends Specification {
