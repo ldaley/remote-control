@@ -17,8 +17,8 @@ To demonstrate what it looks like, here is an example using the http transport a
 Server side…
 
     import com.sun.net.httpserver.HttpServer
-    import groovyx.remote.transport.http.RemoteControlHttpHandler
-    import groovyx.remote.server.Receiver
+    import io.remotecontrol.transport.http.RemoteControlHttpHandler
+    import io.remotecontrol.server.Receiver
     
     // the receiver of remote commands
     def receiver = new Receiver()
@@ -32,8 +32,8 @@ Server side…
     
 Client side…
 
-    import groovyx.remote.client.RemoteControl
-    import groovyx.remote.transport.http.HttpTransport
+    import io.remotecontrol.client.RemoteControl
+    import io.remotecontrol.transport.http.HttpTransport
     
     // defines how to talk to the server
     def transport = new HttpTransport("http://localhost:8080/groovy-remote-control")

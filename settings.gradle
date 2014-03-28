@@ -4,3 +4,5 @@ include "module:remote-core",
 		"module:remote-using-lib",
         "doc:manual",
         "doc:site"
+
+rootProject.name = "remote-control"

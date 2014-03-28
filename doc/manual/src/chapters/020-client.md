@@ -4,10 +4,10 @@ The following is an overview of the client side API.
 
 ## Creating a remote control
 
-Instances of the `groovyx.remote.client.RemoteControl` class are used by clients to send closures to servers. This class has the following constructors…
+Instances of the `io.remotecontrol.client.RemoteControl` class are used by clients to send closures to servers. This class has the following constructors…
 
-    RemoteControl(groovyx.remote.client.Transport transport)
-    RemoteControl(groovyx.remote.client.Transport transport, ClassLoader classLoader)
+    RemoteControl(io.remotecontrol.client.Transport transport)
+    RemoteControl(io.remotecontrol.client.Transport transport, ClassLoader classLoader)
 
 The `Transport` object is responsible for providing the means of communication with the server. The different transport jars (such as `remote-transport-http`) provide implementations of this interface. 
 
@@ -112,23 +112,23 @@ The following will pass:
 
 ### Remote Exceptions
 
-Exceptions thrown on the server are captured and returned to the client where they are wrapped in a `groovyx.remote.client.RemoteException` and thrown.
+Exceptions thrown on the server are captured and returned to the client where they are wrapped in a `io.remotecontrol.client.RemoteException` and thrown.
     
     try {
         remote.exec {
             throw new IllegalStateException("bang!")
         }
-    } catch (groovyx.remote.client.RemoteException e) {
+    } catch (io.remotecontrol.client.RemoteException e) {
         def remoteException = e.cause
         assert remoteException instanceof IllegalStateException
         assert remoteException.message == "bang!"
     }
 
-If the remote exception was not able to be serialized, it will be *wrapped* in a `groovyx.remote.UnserializableExceptionException`. This exception assumes the stack trace of the real exception and constructs a message based on the class and message of the real exception. 
+If the remote exception was not able to be serialized, it will be *wrapped* in a `io.remotecontrol.UnserializableExceptionException`. This exception assumes the stack trace of the real exception and constructs a message based on the class and message of the real exception.
 
 ### Unserializable Return Values
 
-If the return value of the last command in the chain is not `Serializable`, a `groovyx.remote.client.UnserializableReturnException` is thrown. The `toString()` representation of the unserializable object is available as the `stringRepresentation` property on the exception.
+If the return value of the last command in the chain is not `Serializable`, a `io.remotecontrol.client.UnserializableReturnException` is thrown. The `toString()` representation of the unserializable object is available as the `stringRepresentation` property on the exception.
 
 There are two flags that can be set on remote control objects to augment this behaviour (both default to false)
 
@@ -151,7 +151,7 @@ If something is accessed from lexical scoped that is not serializable, a `java.i
 
 ### All Classes Must Be Available To The Server
 
-With the exception of the command closure and any closures defined inside it, any classes used inside the command must be available to the server. If a command closure does use a class that is not available to the server, either a `java.lang.ClassNotFoundException` or `java.lang.NoClassDefFoundError` (depending on how the class is used) will be thrown on the server (which results in a `groovyx.remote.client.RemoteException` being thrown on the client).
+With the exception of the command closure and any closures defined inside it, any classes used inside the command must be available to the server. If a command closure does use a class that is not available to the server, either a `java.lang.ClassNotFoundException` or `java.lang.NoClassDefFoundError` (depending on how the class is used) will be thrown on the server (which results in a `io.remotecontrol.client.RemoteException` being thrown on the client).
 
 This means that closures defined outside of the command closure (that are not available to the server) cannot be used even if they are in lexical scope. This means the following will not work.
 

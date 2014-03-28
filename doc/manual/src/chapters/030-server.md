@@ -4,7 +4,7 @@ The server side of the API is about receiving serialised commands, executing the
 
 How the command is received is particular to the transport being used. As such, the core library does not provide any endpoint implementations. 
 
-Endpoint implementations create a [`groovyx.remote.server.Receiver`][receiver-api] object that manages the execution of commands.
+Endpoint implementations create a [`io.remotecontrol.server.Receiver`][receiver-api] object that manages the execution of commands.
 
 It exposes one method...
 
