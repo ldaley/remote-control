@@ -1,9 +1,9 @@
-package io.remotecontrol.transport.http;
+package io.remotecontrol.groovy;
 
 public enum ContentType {
 
-    COMMAND("application/groovy-remote-control-control-command"),
-    RESULT("application/groovy-remote-control-control-result");
+    COMMAND("application/groovy-remote-control-command"),
+    RESULT("application/groovy-remote-control-result");
 
     private final String value;
 

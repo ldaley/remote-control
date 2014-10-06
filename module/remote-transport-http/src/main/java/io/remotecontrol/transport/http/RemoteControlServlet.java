@@ -1,5 +1,6 @@
 package io.remotecontrol.transport.http;
 
+import io.remotecontrol.groovy.ContentType;
 import io.remotecontrol.server.Receiver;
 
 import javax.servlet.ServletConfig;

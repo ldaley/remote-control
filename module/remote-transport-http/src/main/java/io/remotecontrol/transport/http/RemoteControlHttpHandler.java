@@ -2,6 +2,7 @@ package io.remotecontrol.transport.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import io.remotecontrol.groovy.ContentType;
 import io.remotecontrol.server.Receiver;
 
 import java.io.IOException;

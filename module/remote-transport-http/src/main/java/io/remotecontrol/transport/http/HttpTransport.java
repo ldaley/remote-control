@@ -3,6 +3,7 @@ package io.remotecontrol.transport.http;
 import io.remotecontrol.CommandChain;
 import io.remotecontrol.RemoteControlException;
 import io.remotecontrol.client.Transport;
+import io.remotecontrol.groovy.ContentType;
 import io.remotecontrol.result.Result;
 import io.remotecontrol.result.ResultFactory;
 import io.remotecontrol.result.impl.DefaultResultFactory;
