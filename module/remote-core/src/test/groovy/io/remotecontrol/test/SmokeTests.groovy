@@ -268,6 +268,7 @@ class SmokeTests extends GroovyTestCase {
     /**
      * Variation of above, but yields a different error.
      */
+    @SuppressWarnings("EmptyClass")
     static class Inner {}
 
     void testCannotInstantiateClassesNotInTheApp() {

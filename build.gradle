@@ -81,7 +81,7 @@ subprojects {
         }
 
         dependencies {
-            groovy groovyDependency
+            compile groovyDependency
             testCompile spockDependency
         }
 
@@ -179,7 +179,7 @@ project(':module:remote-using-lib') {
     apply plugin: "groovy"
 
     dependencies {
-        groovy groovyDependency
+        compile groovyDependency
         compile project(":module:remote-core")
     }
 }

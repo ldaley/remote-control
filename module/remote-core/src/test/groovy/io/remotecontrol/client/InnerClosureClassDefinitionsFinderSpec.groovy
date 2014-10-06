@@ -16,34 +16,34 @@
 package io.remotecontrol.client
 
 import io.remotecontrol.groovy.client.InnerClosureClassDefinitionsFinder
-import spock.lang.*
+import spock.lang.Specification
 
 class InnerClosureClassDefinitionsFinderSpec extends Specification {
 
-	protected createFinder(String[] urls) {
-		new InnerClosureClassDefinitionsFinder(new URLClassLoader(urls.collect { new URL(it) } as URL[]))
-	}
-	
-	def "non existant class path entries are ignored"() {
-		given:
-		def finder = createFinder("file:///idontexist.zip", "file:///idontexistdirectory")
-		
-		when:
-		finder.find({ 1 }.class)
-		
-		then:
-		notThrown Exception
-	}
-	
-	def "non file classpath entries are ignored"() {
-		given:
-		def finder = createFinder("http://google.com")
-		
-		when:
-		finder.find({ 1 }.class)
-		
-		then:
-		notThrown Exception
-	}
-	
+    protected createFinder(String[] urls) {
+        new InnerClosureClassDefinitionsFinder(new URLClassLoader(urls.collect { new URL(it) } as URL[]))
+    }
+
+    def "non existant class path entries are ignored"() {
+        given:
+        def finder = createFinder("file:///idontexist.zip", "file:///idontexistdirectory")
+
+        when:
+        finder.find({ 1 }.class)
+
+        then:
+        notThrown Exception
+    }
+
+    def "non file classpath entries are ignored"() {
+        given:
+        def finder = createFinder("http://google.com")
+
+        when:
+        finder.find({ 1 }.class)
+
+        then:
+        notThrown Exception
+    }
+
 }
