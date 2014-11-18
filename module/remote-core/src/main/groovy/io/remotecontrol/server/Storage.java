@@ -20,7 +20,7 @@ public class Storage extends GroovyObjectSupport {
         if (storage.containsKey(name)) {
             return storage.get(name);
         } else {
-            throw new MissingPropertyException("No property named \'" + name + "\' is is available in the context");
+            throw new MissingPropertyException("No property named \'" + name + "\' is available in the context");
         }
     }
 
