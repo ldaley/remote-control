@@ -3,7 +3,6 @@ import java.util.concurrent.locks.ReentrantLock
 
 buildscript {
     repositories {
-        mavenCentral()
         jcenter()
     }
 
