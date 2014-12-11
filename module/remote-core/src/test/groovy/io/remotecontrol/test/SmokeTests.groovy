@@ -78,7 +78,7 @@ class SmokeTests extends GroovyTestCase {
      */
     void testWithInnerClosures() {
         assert [2, 3, 4] == remote {
-            [1, 2, 3].collect { it + 1 }
+            [1, 2, 3].collect { [it].collect { it + 1 }[0] }
         }
     }
 

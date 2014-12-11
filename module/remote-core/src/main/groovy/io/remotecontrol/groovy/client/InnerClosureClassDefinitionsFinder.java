@@ -30,9 +30,10 @@ public class InnerClosureClassDefinitionsFinder {
     @SuppressWarnings("NestedBlockDepth")
     public List<byte[]> find(Class<? extends Closure> clazz) throws IOException {
         List<byte[]> classes = new ArrayList<byte[]>();
-        String packageDirPath = toPackageDirPath(clazz);
         String innerClassPrefix = toInnerClassPrefix(clazz);
+        String packageDirPath = toPackageDirPath(clazz);
         String innerClassPrefixWithPackage = packageDirPath + "/" + innerClassPrefix;
+        String ownerClassFileName = innerClassPrefix + ".class";
 
         for (URLClassLoader loader : calculateEffectiveClassLoaderHierarchy()) {
             for (URL url : loader.getURLs()) {
@@ -57,7 +58,7 @@ public class InnerClosureClassDefinitionsFinder {
                     File packageDir = packageDirPath != null ? new File(root, packageDirPath) : root;
                     if (packageDir.exists()) {
                         for (String classFileName : packageDir.list()) {
-                            if (classFileName.startsWith(innerClassPrefix) && classFileName.endsWith(".class")) {
+                            if (classFileName.startsWith(innerClassPrefix) && classFileName.endsWith(".class") && classFileName.length() != ownerClassFileName.length()) {
                                 File file = new File(packageDir, classFileName);
                                 classes.add(IoUtil.read(file));
                             }
@@ -73,7 +74,7 @@ public class InnerClosureClassDefinitionsFinder {
                             while (entries.hasMoreElements()) {
                                 ZipEntry entry = entries.nextElement();
                                 String name = entry.getName();
-                                if (name.startsWith(innerClassPrefixWithPackage) && name.endsWith(".class")) {
+                                if (name.startsWith(innerClassPrefixWithPackage) && name.endsWith(".class") && !name.endsWith(ownerClassFileName)) {
                                     InputStream inputStream = jarFile.getInputStream(entry);
                                     classes.add(IoUtil.read(inputStream));
                                 }
@@ -102,14 +103,14 @@ public class InnerClosureClassDefinitionsFinder {
     }
 
     protected String toPackageDirPath(Class clazz) {
-        Package var = clazz.getPackage();
-        return var == null ? null : var.getName().replace(".", "/");
+        Package pkg = clazz.getPackage();
+        return pkg == null ? "" : pkg.getName().replace(".", "/");
     }
 
     protected String toInnerClassPrefix(Class clazz) {
         final Package var = clazz.getPackage();
         final String packageName = (var == null ? null : var.getName());
-        String fixedName = clazz.getName().replace("$_$", "$_") + "_";
+        String fixedName = clazz.getName().replace("$_$", "$_");
         if (packageName == null) {
             return fixedName;
         } else {
