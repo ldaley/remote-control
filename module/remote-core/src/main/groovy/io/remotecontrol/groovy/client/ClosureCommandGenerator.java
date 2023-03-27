@@ -24,7 +24,7 @@ import io.remotecontrol.groovy.ClosureCommand;
 import io.remotecontrol.groovy.ClosureUtil;
 import io.remotecontrol.util.UnexpectedIOException;
 import org.codehaus.groovy.runtime.CurriedClosure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.codehaus.groovy.runtime.IOGroovyMethods;
 
 import java.io.IOException;
 import java.io.NotSerializableException;
@@ -115,7 +115,7 @@ public class ClosureCommandGenerator implements CommandGenerator<RawClosureComma
         }
 
         try {
-            return DefaultGroovyMethods.getBytes(classFileResource);
+            return IOGroovyMethods.getBytes(classFileResource.openStream());
         } catch (IOException e) {
             throw new UnexpectedIOException("reading class files", e);
         }

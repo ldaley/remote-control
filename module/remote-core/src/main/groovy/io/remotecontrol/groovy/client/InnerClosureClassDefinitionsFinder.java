@@ -1,11 +1,10 @@
 package io.remotecontrol.groovy.client;
 
 import groovy.lang.Closure;
+import io.remotecontrol.RemoteControlException;
 import io.remotecontrol.util.IoUtil;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -17,89 +16,28 @@ import java.util.zip.ZipFile;
 
 public class InnerClosureClassDefinitionsFinder {
 
-    private final URLClassLoader classLoader;
+    private final ClassLoader classLoader;
 
     public InnerClosureClassDefinitionsFinder(ClassLoader classLoader) {
-        if (!(classLoader instanceof URLClassLoader)) {
-            throw new IllegalArgumentException("Only URLClassLoaders are supported");
-        }
-
-        this.classLoader = ((URLClassLoader) (classLoader));
+        this.classLoader = classLoader;
     }
 
     @SuppressWarnings("NestedBlockDepth")
     public List<byte[]> find(Class<? extends Closure> clazz) throws IOException {
-        List<byte[]> classes = new ArrayList<byte[]>();
+        List<byte[]> classes    = new ArrayList<byte[]>();
         String innerClassPrefix = toInnerClassPrefix(clazz);
-        String packageDirPath = toPackageDirPath(clazz);
-        String innerClassPrefixWithPackage = packageDirPath + "/" + innerClassPrefix;
-        String ownerClassFileName = innerClassPrefix + ".class";
+        String packageDirPath   = toPackageDirPath(clazz);
 
-        for (URLClassLoader loader : calculateEffectiveClassLoaderHierarchy()) {
-            for (URL url : loader.getURLs()) {
-                if (!url.getProtocol().equals("file")) {
-                    // we only support searching the filesystem right not
-                    continue;
-                }
-
-                File root;
-                try {
-                    root = new File(url.toURI());
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-
-                if (!root.exists()) {
-                    // may have been removed, just skip it
-                    continue;
-                }
-
-                if (root.isDirectory()) {
-                    File packageDir = packageDirPath != null ? new File(root, packageDirPath) : root;
-                    if (packageDir.exists()) {
-                        for (String classFileName : packageDir.list()) {
-                            if (classFileName.startsWith(innerClassPrefix) && classFileName.endsWith(".class") && classFileName.length() != ownerClassFileName.length()) {
-                                File file = new File(packageDir, classFileName);
-                                classes.add(IoUtil.read(file));
-                            }
-                        }
-                    }
-                } else if (root.getName().endsWith(".jar") || root.getName().endsWith(".zip")) {
-                    ZipFile jarFile = new ZipFile(root);
-
-                    try {
-                        Object packageDir = packageDirPath == null ? root : jarFile.getEntry(packageDirPath);
-                        if (packageDir != null) {
-                            Enumeration<? extends ZipEntry> entries = jarFile.entries();
-                            while (entries.hasMoreElements()) {
-                                ZipEntry entry = entries.nextElement();
-                                String name = entry.getName();
-                                if (name.startsWith(innerClassPrefixWithPackage) && name.endsWith(".class") && !name.endsWith(ownerClassFileName)) {
-                                    InputStream inputStream = jarFile.getInputStream(entry);
-                                    classes.add(IoUtil.read(inputStream));
-                                }
-                            }
-                        }
-                    } finally {
-                        jarFile.close();
-                    }
-                }
+        // Find, via the class loader, the names of all inner closures of given class and for each,
+        // gather the inner class as a byte array
+        List<String> classNames = findInnerClosureClassNames(packageDirPath, innerClassPrefix);
+        for (String className : classNames) {
+            byte[] classBytes = fetchClassBytes(packageDirPath, className);
+            if (classBytes != null) {
+                classes.add(classBytes);
             }
         }
-
-
         return classes;
-    }
-
-    protected List<URLClassLoader> calculateEffectiveClassLoaderHierarchy() {
-        List<URLClassLoader> hierarchy = new ArrayList<URLClassLoader>();
-        URLClassLoader current = classLoader;
-        while (current != null && current instanceof URLClassLoader) {
-            hierarchy.add(current);
-            current = ((URLClassLoader) (current.getParent()));
-        }
-
-        return hierarchy;
     }
 
     protected String toPackageDirPath(Class clazz) {
@@ -118,4 +56,56 @@ public class InnerClosureClassDefinitionsFinder {
         }
     }
 
+    /**
+     * Retrieve the list of class names for any inner classes/closures associated the specified package & class name.
+     *
+     * @param packageName  Name of the package
+     * @param className    Name of the 'outer' class/closure
+     * @return List of String objects representing class name(s) (with the '.class' suffix)
+     */
+    private List<String> findInnerClosureClassNames(String packageName, String className) {
+        List<String>   classNames = new ArrayList<String>();
+        String         dotClass   = ".class";
+        try {
+            InputStream    inStream = this.classLoader.getResourceAsStream(packageName.replaceAll("[.]", "/"));
+            BufferedReader reader   = new BufferedReader(new InputStreamReader(inStream));
+            if ((className != null) && (className.length() > 0)) {
+                String line = null;
+                String nameWithDotClass = className + dotClass;
+                while ((line = reader.readLine()) != null) {
+                    if ((! line.equals(nameWithDotClass)) && (line.startsWith(className)) && (line.endsWith(dotClass))) {
+                        // An inner class of the named class, but not the named class itself; Add to list to be returned
+                        classNames.add(line);
+                    }
+                }
+            }
+        }
+        catch (Exception x) {
+            throw new RemoteControlException("Unable to read from classloader for " + packageName, x);
+        }
+        return classNames;
+    }
+
+    /**
+     * Fetch the class for the specified class name.
+     *
+     * @param packageName  Name of the package
+     * @param className    Name of the class
+     * @return  Class object representing the named class
+     */
+    private byte[] fetchClassBytes(String packageName, String className) {
+        byte[] classBytes   = null;
+        String fullPathName = null;
+        try {
+            String   fullClassName = packageName.replace("/", ".") + "." + className.substring(0, className.lastIndexOf("."));
+            Class<?> clazz         = Class.forName(fullClassName);
+            fullPathName           = packageName.replace(".", "/") + "/" + className;
+            InputStream stream     = clazz.getClassLoader().getResourceAsStream(fullPathName);
+            classBytes = IoUtil.read(stream);
+        }
+        catch (Exception x) {
+            throw new RemoteControlException("Unable to find and/or load class " + fullPathName, x);
+        }
+        return classBytes;
+    }
 }
