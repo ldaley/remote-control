@@ -16,6 +16,7 @@
 
 package io.remotecontrol.test
 
+import io.remotecontrol.RemoteControlException
 import io.remotecontrol.client.UnserializableResultStrategy
 import io.remotecontrol.groovy.client.RemoteControl
 import io.remotecontrol.client.RemoteException
@@ -26,6 +27,7 @@ import io.remotecontrol.transport.local.LocalTransport
 import io.remotecontrol.util.FilteringClassLoader
 import io.remotecontrol.UnserializableExceptionException
 import io.remotecontrol.UnserializableCommandException
+import spock.lang.Specification
 
 /**
  * This test case shows how to use the remotecontrol control and some of it's limitations
@@ -43,7 +45,7 @@ import io.remotecontrol.UnserializableCommandException
  * An example use for this would be creating/deleting domain data inside your remotecontrol application for testing purposes.
  */
 @SuppressWarnings("MethodCount")
-class SmokeTests extends GroovyTestCase {
+class SmokeTests extends Specification {
 
     // Used in a later test
     def anIvar = 2
@@ -52,7 +54,7 @@ class SmokeTests extends GroovyTestCase {
     def transport
     def clientClassLoader
 
-    void setUp() {
+    void setup() {
         if (remote == null) {
             // we need to create a classloader for the "server" side that cannot access
             // classes defined in this file.
@@ -69,14 +71,16 @@ class SmokeTests extends GroovyTestCase {
     /**
      * The result of the command run on the server is sent back and is returned
      */
-    void testReturingValues() {
-        assert remote { def a = 1; a + 1 } == 2
+     def "testReturingValues"() {
+         expect:
+         assert remote { def a = 1; a + 1 } == 2
     }
 
     /**
      * Commands can contain other closures
      */
-    void testWithInnerClosures() {
+    def "testWithInnerClosures"(){
+        expect:
         assert [2, 3, 4] == remote {
             [1, 2, 3].collect { [it].collect { it + 1 }[0] }
         }
@@ -87,7 +91,8 @@ class SmokeTests extends GroovyTestCase {
      * client side with the actual exception instance that was thrown server
      * side as the cause
      */
-    void testThrowingException() {
+    def "testThrowingException"() {
+        expect:
         def thrown = null
         try {
             remote { throw new Exception("bang!") }
@@ -103,28 +108,37 @@ class SmokeTests extends GroovyTestCase {
     /**
      * If the command returns something that is unserialisable, we thrown an UnserializableReturnException
      */
-    void testUnserialisableReturn() {
-        shouldFail(UnserializableReturnException) {
-            remote.exec { System.out }
-        }
+    def "testUnserialisableReturn"() {
+        when:
+        remote.exec { System.out }
+
+        then:
+        thrown UnserializableReturnException
     }
 
     /**
      * If the command returns something that is unserialisable, we thrown an UnserializableReturnException
      */
-    void testNestedUnserialisableReturn() {
-        shouldFail(UnserializableReturnException) {
-            remote.exec { [m: [out: System.out]] }
-        }
+    def "testNestedUnserialisableReturn"(){
+        when:
+        remote.exec { [m: [out: System.out]] }
+
+        then:
+        thrown UnserializableReturnException
     }
 
-    void testUnserializableExceptionsAreWrappedInUnserializableExceptionException() {
-        shouldFailWithCause(UnserializableExceptionException) {
-            remote.exec { throw new IncorrectClosureArgumentsException({ 1 }, [System.out], OutputStream) }
-        }
+    def "testExceptionsAreWrappedInRemoteControlException"() {
+        when:
+        remote.exec { throw new IncorrectClosureArgumentsException({ 1 }, [System.out], OutputStream) }
+
+        then:
+        Exception x = thrown()
+        x instanceof RemoteControlException
+        x.getCause() instanceof UnserializableExceptionException
     }
 
-    void testUnserializableExceptionWithCause() {
+    def "testUnserializableExceptionWithCause"() {
+        expect:
         def cause = null
         try {
             remote.exec {
@@ -140,46 +154,56 @@ class SmokeTests extends GroovyTestCase {
         }
     }
 
-    void testCanSpecifyToUseNullIfReturnWasUnserializable() {
+    def "testCanSpecifyToUseNullIfReturnWasUnserializable"() {
+        given:
         remote = new RemoteControl(transport, UnserializableResultStrategy.NULL, clientClassLoader)
+        expect:
         assert remote.exec { System.out } == null
     }
 
-    void testCanSpecifyToUseStringRepresentationIfReturnWasUnserializable() {
+    def "testCanSpecifyToUseStringRepresentationIfReturnWasUnserializable"() {
+        given:
         remote = new RemoteControl(transport, UnserializableResultStrategy.STRING, clientClassLoader)
+        expect:
         assert remote.exec { System.out }.contains("Stream")
     }
 
     /**
      * If the command returns an exception but does not throw it, we just return the exception
      */
-    void testReturningException() {
+    def "testReturningException"() {
+        expect:
         assert (remote { new Exception() }) instanceof Exception
     }
 
     /**
      * We can access lexical scope (within limits)
      */
-    void testAccessingLexicalScope() {
+    def "testAccessingLexicalScope"() {
+        given:
         def a = 1
+        expect:
         assert remote { a + 1 } == 2
     }
 
     /**
      * Anything in lexical scope we access must be serialisable
      */
-    void testAccessingNonSerializableLexicalScope() {
+    def "testAccessingNonSerializableLexicalScope"() {
+        given:
         def a = System.out
-        shouldFail(UnserializableCommandException) {
-            remote.exec { a }
-        }
+        when:
+        remote.exec { a }
+        then:
+        thrown UnserializableCommandException
     }
 
     /**
      * Owner ivars can't be accessed because they aren't really lexical
      * so get treated as bean names from the app context
      */
-    void testAccessingIvar() {
+    def "testAccessingIvar"(){
+        expect
         def thrown
         try {
             remote { anIvar * 2 }
@@ -194,45 +218,54 @@ class SmokeTests extends GroovyTestCase {
     /**
      * We can pass curried commands
      */
-    void testCurryingCommands() {
+    def "testCurryingCommands"() {
+        given:
         def command = { it + 2 }
+        expect:
         assert remote.exec(command.curry(2)) == 4
     }
 
     /**
      * We can curry a command as many times as we need to
      */
-    void testCurryingCommandsMoreThanOnce() {
+    def "testCurryingCommandsMoreThanOnce"() {
+        given:
         def command = { a, b -> a + b }
         def curry1 = command.curry(1)
         def curry2 = curry1.curry(1)
-
+        expect:
         assert remote.exec(curry2) == 2
     }
 
     /**
      * Like everything else, currying args must be serialisable
      */
-    void testCurryingArgsMustBeSerializable() {
-        shouldFail(UnserializableCommandException) {
-            remote.exec({ it }.curry(System.out))
-        }
+    def "testCurryingArgsMustBeSerializable"() {
+        when:
+        remote.exec({ it }.curry(System.out))
+        then:
+        thrown UnserializableCommandException
     }
 
     /**
      * Closures defined outside of the exec closures can be used inside of them if only the closures defined outside are passed as contextClosure option. Useful when creating DSLs.
      */
-    void testPassingUsedClosures() {
+    def "testPassingUsedClosures"(){
+        given:
         def contextClosure = { 1 }
+        expect:
         assert remote.exec(usedClosures: [contextClosure]) { contextClosure() + 1 } == 2
     }
 
-    void testPassingUsedClosuresWithInnerClosures() {
+    def "testPassingUsedClosuresWithInnerClosures"() {
+        given:
         def contextClosure = { (1..3).inject(0) { sum, value -> sum + value } }
+        expect:
         assert remote.exec(usedClosures: [contextClosure]) { contextClosure() } == 6
     }
 
-    void testPassingUsedClosuresThatAccessADelegate() {
+    def "testPassingUsedClosuresThatAccessADelegate"() {
+        expect:
         def contextClosure = { size() }
         assert remote.exec(usedClosures: [contextClosure]) {
             contextClosure.setProperty('delegate', 'some text')
@@ -240,29 +273,38 @@ class SmokeTests extends GroovyTestCase {
         } == 9
     }
 
-    void testPassingWrongTypeInUsedClosures() {
-        assert shouldFail(IllegalArgumentException) {
-            remote.exec(usedClosures: {}) {}
-        } == "'usedClosures' argument must be iterable"
+    def "testPassingWrongTypeInUsedClosures"() {
+        when:
+        remote.exec(usedClosures: {}) {}
+        then:
+        Exception x = thrown()
+        x instanceof IllegalArgumentException
+        x.getMessage() == "'usedClosures' argument must be iterable"
     }
 
-    void testPassingUnknownOption() {
-        assert shouldFail(IllegalArgumentException) {
-            remote.exec(unknown: {}) {}
-        } == "Unknown option 'unknown'"
+    def "testPassingUnknownOption"() {
+        when:
+        remote.exec(unknown: {}) {}
+        then:
+        Exception x = thrown()
+        x instanceof IllegalArgumentException
+        x.getMessage() == "Unknown option 'unknown'"
     }
 
     /**
      * Any classes referenced have to be available in the remotecontrol app,
      * and any classes defined in tests ARE NOT.
      */
-    void testCannotReferToClassesNotInTheApp() {
+    def "testCannotReferToClassesNotInTheApp"() {
+        given:
         def a = new GroovyClassLoader().parseClass("class T implements Serializable {}").newInstance()
-        shouldFailWithCause(ClassNotFoundException) {
-            remote.exec {
-                a
-            }
-        }
+        when:
+        remote.exec { a }
+        then:
+        Exception x = thrown()
+        x instanceof RemoteControlException
+        x.getCause() instanceof RemoteControlException
+        x.getCause().getMessage() == "Class not found on server (the command referenced a class that the server does not have)"
     }
 
     /**
@@ -271,24 +313,28 @@ class SmokeTests extends GroovyTestCase {
     @SuppressWarnings("EmptyClass")
     static class Inner {}
 
-    void testCannotInstantiateClassesNotInTheApp() {
-        shouldFailWithCause(NoClassDefFoundError) {
-            remote.exec { new Inner() }
-        }
+    def "testCannotInstantiateClassesNotInTheApp"() {
+        when:
+        remote.exec { new Inner() }
+        then:
+        Exception x = thrown()
+        x.getCause() instanceof NoClassDefFoundError
     }
 
     /**
      * Multiple commands can be sent, the return value of the previous
      * command is passed to the next command as it's single argument
      */
-    void testCommandChaining() {
+    def "testCommandChaining"() {
+        expect:
         remote.exec({ 1 }, { it + 1 }) { it + 1 } == 3
     }
 
     /**
      * The delegate of commands is like a map and can store properties.
      */
-    void testCanUseDelegateStorageAlongChain() {
+    def "testCanUseDelegateStorageAlongChain"() {
+        expect:
         remote.exec(
             { num = 1 },
             { num = num + 1 }
@@ -299,30 +345,39 @@ class SmokeTests extends GroovyTestCase {
      * Trying to access a property that is not existing in the delegate
      * causes a MissingPropertyException
      */
-    void testAccessingNonExistantPropertyFromDelegateCausesMPE() {
-        shouldFailWithCause(MissingPropertyException) {
-            remote.exec { iDontExist == true }
-        }
+    def "testAccessingNonExistantPropertyFromDelegateCausesMPE"() {
+        when:
+        remote.exec { iDontExist == true }
+        then:
+        Exception x = thrown()
+        x.getCause() instanceof MissingPropertyException
     }
 
-    void testCanSetProperties() {
+    def "testCanSetProperties"() {
+        expect:
         remote.exec { new GregorianCalendar().time = new Date() }
     }
 
-    void testCanCallMethodsDynamicaly() {
-        def methodName = "setTime"
-        remote.exec { new GregorianCalendar()."$methodName"(new Date()) } != null
+    def "testCanCallMethodsDynamicaly"() {
+        given:
+        def methodName = "isLeapYear"
+        expect:
+        remote.exec { new GregorianCalendar()."$methodName"(2020) } == true
+        remote.exec { new GregorianCalendar()."$methodName"(2021) } == false
     }
 
-    void testCanUseSpreadOperator() {
+    def "testCanUseSpreadOperator"() {
+        expect:
         remote.exec { [1, 2, 3]*.toString() } == ["1", "2", "3"]
     }
 
-    void testCanUseSpreadMapOperator() {
+    def "testCanUseSpreadMapOperator"() {
+        expect:
         remote.exec { new HashMap(*: [a: 1, b: 2]) }
     }
 
-    void testExternalLibrariesExecutingCodeOnRemote() {
+    def "testExternalLibrariesExecutingCodeOnRemote"(){
+        expect:
         assert new RemoteCallingClass(remote).multiplyBy2OnRemote(3) == 6
     }
 
