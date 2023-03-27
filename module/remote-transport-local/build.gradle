@@ -1,0 +1,56 @@
+group appGroup
+description "Provides an in process bridge for sending/receiving commands"
+
+apply plugin: 'maven-publish'
+
+sourceCompatibility = "${sourceCompatibilityVersion}"
+targetCompatibility = "${targetCompatibilityVersion}"
+
+dependencies {
+    implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
+    implementation project(":module:remote-core")
+
+    testImplementation "org.spockframework:spock-core:${spockVersion}"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+test {
+    // Enable reflection for use by remote execution tests
+    jvmArgs = ['--add-opens=java.base/java.lang=ALL-UNNAMED']
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId    = project.group
+            artifactId = project.name
+            version    = project.version
+            from components.java
+
+            pom {
+                name = project.name
+                description = project.description
+                url = "http://remotecontrol.io"
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                scm {
+                    url = "https://github.com/alkemist/remote-control"
+                }
+                developers {
+                    developer {
+                        id   = "ldaley"
+                        name = "Luke Daley"
+                    }
+                }
+            }
+        }
+    }
+}

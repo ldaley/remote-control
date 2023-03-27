@@ -1,0 +1,61 @@
+group appGroup
+description "Support for sending and receiving remote commands over HTTP (including a servlet implementation)"
+
+apply plugin: 'maven-publish'
+
+sourceCompatibility = "${sourceCompatibilityVersion}"
+targetCompatibility = "${targetCompatibilityVersion}"
+
+dependencies {
+    implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
+    implementation project(":module:remote-core")
+    implementation "javax.servlet:servlet-api:2.4"
+    implementation "jakarta.servlet:jakarta.servlet-api:6.0.0"
+
+    testImplementation "org.mortbay.jetty:jetty:6.1.21"
+    testImplementation "org.eclipse.jetty:jetty-server:11.0.13"
+    testImplementation "org.eclipse.jetty:jetty-servlet:11.0.13"
+    testImplementation "org.spockframework:spock-core:${spockVersion}"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+test {
+    // Enable reflection for use by remote execution tests
+    jvmArgs = ['--add-opens=java.base/java.lang=ALL-UNNAMED']
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId    = project.group
+            artifactId = project.name
+            version    = project.version
+            from components.java
+
+            pom {
+                name = project.name
+                description = project.description
+                url = "http://remotecontrol.io"
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                scm {
+                    url = "https://github.com/alkemist/remote-control"
+                }
+                developers {
+                    developer {
+                        id   = "ldaley"
+                        name = "Luke Daley"
+                    }
+                }
+            }
+        }
+    }
+}
