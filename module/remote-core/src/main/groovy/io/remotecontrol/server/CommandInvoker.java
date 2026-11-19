@@ -17,7 +17,6 @@
 package io.remotecontrol.server;
 
 import groovy.lang.Closure;
-import groovy.lang.GroovyClassLoader;
 import io.remotecontrol.groovy.ClosureCommand;
 import io.remotecontrol.RemoteControlException;
 import io.remotecontrol.SerializationUtil;
@@ -60,11 +59,11 @@ public class CommandInvoker {
     }
 
     protected Closure<?> instantiate() throws IOException {
-        final GroovyClassLoader classLoader = new GroovyClassLoader(parentLoader);
-        SerializationUtil.defineClass(classLoader, command.getRoot());
+        final CommandClassLoader classLoader = new CommandClassLoader(parentLoader);
+        classLoader.defineCommandClass(command.getRoot());
 
         for (byte[] bytes : command.getSupports()) {
-            SerializationUtil.defineClass(classLoader, bytes);
+            classLoader.defineCommandClass(bytes);
         }
 
         try {

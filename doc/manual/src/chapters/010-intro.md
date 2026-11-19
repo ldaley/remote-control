@@ -53,7 +53,7 @@ These are just some examples of what can be achieved, and not a complete listing
 
 ## Installation
 
-> The current version of Groovy Remote Control is **0.3**
+> The current version of Groovy Remote Control is **0.8**
 
 To get up and running you need the `remote-core` jar (available from Maven central) and a transport implementation. 
 
@@ -77,4 +77,8 @@ Via Gradle…
 
 ### Groovy Version
 
-This library requires version 1.7.5 or greater of Groovy on both the server and client side.
+This library requires version 3.0.11 or greater of Groovy on both the server and client side.
+
+### Java Version
+
+This library requires Java version 17 or greater on both the server and client side.

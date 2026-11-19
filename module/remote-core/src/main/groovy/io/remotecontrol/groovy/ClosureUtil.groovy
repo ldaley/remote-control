@@ -22,6 +22,13 @@ class ClosureUtil {
         Closure.metaClass.setAttribute(closure, 'owner', null)
         Closure.metaClass.setAttribute(closure, 'thisObject', null)
         Closure.metaClass.setAttribute(closure, 'delegate', null)
+
+        // With the owner gone, OWNER_FIRST can only ever resolve against the delegate. Groovy 3 fell through a
+        // null owner to the delegate, but Groovy 4+ dispatches to the null owner and fails with a
+        // NullPointerException, so make the effective delegate-first behaviour explicit.
+        if (closure.resolveStrategy == Closure.OWNER_FIRST) {
+            closure.resolveStrategy = Closure.DELEGATE_FIRST
+        }
     }
 
 }

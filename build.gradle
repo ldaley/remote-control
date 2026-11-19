@@ -1,67 +1,43 @@
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReentrantLock
+import java.nio.charset.Charset
 
 buildscript {
     repositories {
-        jcenter()
+        mavenLocal()
+        mavenCentral()
     }
-
     dependencies {
-        classpath "org.gradle.api.plugins:gradle-clover-plugin:0.6.1"
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3"
         classpath "org.gebish:markdown2book:1.0"
     }
 }
 
-def jvmEncoding = java.nio.charset.Charset.defaultCharset().name()
+def jvmEncoding = Charset.defaultCharset().name()
 if (jvmEncoding != "UTF-8") {
     throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding) - add '-Dfile.encoding=UTF-8' to the GRADLE_OPTS environment variable ")
 }
 
 allprojects {
-    version = '0.6-SNAPSHOT'
-    group = 'io.remotecontrol'
+    version = "${appVersion}"
+    group   = "${appGroup}"
 
     ext {
         isSnapshot = version.endsWith("SNAPSHOT")
-        groovyVersion = "2.2.1"
-        spockVersion = "0.7-groovy-2.0"
-
-        spockDependency = "org.spockframework:spock-core:$spockVersion"
-        groovyDependency = "org.codehaus.groovy:groovy-all:$groovyVersion"
     }
 
     repositories {
-        jcenter()
+        mavenLocal()
+        mavenCentral()
     }
 
-    apply plugin: "idea"
-}
+    tasks.withType(Test) {
+        useJUnitPlatform()
+    }
 
-apply plugin: 'artifactory'
-
-artifactory {
-    contextUrl = 'http://oss.jfrog.org'
-}
-
-artifactoryPublish { task ->
-    skip true
-    rootProject.artifactory {
-        publish {
-            repository {
-                repoKey = isSnapshot ? 'oss-snapshot-local' : 'oss-release-local'
-                gradle.taskGraph.whenReady { taskGraph ->
-                    if (taskGraph.hasTask(task)) {
-                        username = ratpackBintrayUser
-                        password = ratpackBintrayApiKey
-                    }
-                }
-            }
+    tasks.withType(GroovyCompile) {
+        configure(groovyOptions) {
+            forkOptions.jvmArgs = ['-Xmx1024m']
         }
     }
 }
-
-apply from: "$rootDir/gradle/idea.gradle"
 
 def groovyModules = [
     ":module:remote-core", ":module:remote-transport-local", ":module:remote-transport-http"
@@ -74,106 +50,44 @@ def publishedModules = [
 def publishedGroovyModules = groovyModules.findAll { it in publishedModules }
 
 subprojects {
+    // Compile, test and document every JVM module with the Java version from gradle.properties
+    plugins.withType(JavaPlugin).configureEach {
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(javaVersion as int)
+            }
+        }
+    }
+
     if (project.path in groovyModules) {
         apply plugin: "groovy"
         apply plugin: "codenarc"
 
         codenarc {
+            // CodeNarc 4.x is built against Groovy 5 (Gradle's default CodeNarc targets an older Groovy)
+            toolVersion = codenarcVersion
             configFile = rootProject.file("config/codenarc/codenarc.xml")
         }
 
-        dependencies {
-            compile groovyDependency
-            testCompile spockDependency
+        tasks.withType(Test) {
+            useJUnitPlatform()
         }
 
-        sourceCompatibility = 1.6
-        targetCompatibility = 1.6
-    }
-
-    if (project.path in publishedModules) {
-        apply plugin: 'maven'
-        apply plugin: 'artifactory'
-        apply from: "$rootDir/gradle/pom.gradle"
-        apply plugin: 'signing'
-
-        task sourcesJar(type: Jar) {
-            classifier = 'sources'
-            from sourceSets.main.allSource
+        test {
+            // Enable reflection, which is utilized during the remote execution
+            jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
         }
 
-        task javadocJar(type: Jar) {
-            classifier = 'javadoc'
-            from javadoc
-        }
-
-        signing {
-            sign configurations.archives
-            required { !isSnapshot && gradle.taskGraph.hasTask(artifactoryPublish) }
-        }
-
-        artifacts {
-            archives javadocJar
-            archives sourcesJar
-        }
-
-
-        modifyPom { pom ->
-            pom.dependencies.removeAll(pom.dependencies.findAll { it.scope == "test" })
-
-            pom.project {
-                name project.name
-                description project.description
-                if (description == null) {
-                    throw new InvalidUserDataException("Project '$project' has no description")
-                }
-                url "http://remotecontrol.io"
-                inceptionYear "2010"
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
-                scm {
-                    url "https://github.com/alkemist/remote-control"
-                }
-                developers {
-                    developer {
-                        id "ldaley"
-                        name "Luke Daley"
-                        roles {
-                            role "Lead"
-                            role "Founder"
-                        }
-                    }
-                }
+        tasks.withType(GroovyCompile) {
+            configure(groovyOptions) {
+                forkOptions.jvmArgs = ['-Xmx1024m']
             }
         }
     }
-}
 
-project(':module:remote-core') {
-    description "Provides the core of the remote library"
-    dependencies {
-        testCompile project(":module:remote-transport-local"), project(":module:remote-using-lib")
-    }
-}
-
-project(':module:remote-transport-http') {
-    description "Support for sending and receiving remote commands over HTTP (including a servlet implementation)"
-    dependencies {
-        compile project(":module:remote-core"),
-            "javax.servlet:servlet-api:2.4"
-        testCompile "org.mortbay.jetty:jetty:6.1.21"
-    }
-}
-
-project(':module:remote-transport-local') {
-    description "Provides an in process bridge for sending/receiving commands"
-    dependencies {
-        compile project(":module:remote-core")
+    if (project.path in publishedModules) {
+        // Sources and javadoc jars come from java { withSourcesJar(); withJavadocJar() } in each module's build.gradle
+        apply plugin: 'maven-publish'
     }
 }
 
@@ -181,8 +95,8 @@ project(':module:remote-using-lib') {
     apply plugin: "groovy"
 
     dependencies {
-        compile groovyDependency
-        compile project(":module:remote-core")
+        implementation "org.apache.groovy:groovy-all:${groovyVersion}"
+        implementation project(":module:remote-core")
     }
 }
 
@@ -192,26 +106,37 @@ project(":doc:manual") {
         output = file("build/manual")
     }
 
-    task compile << {
-        new markdown2book.Generator(src, output, "UTF-8").generate()
+    // Generate the manual at execution time (not while the build is being configured)
+    def compileManual = tasks.register("compile") {
+        def srcDir = src
+        def outputDir = output
+        inputs.dir(srcDir)
+        doLast {
+            new markdown2book.Generator(srcDir, outputDir, "UTF-8").generate()
+        }
     }
 
-    task copyGroovyDoc(dependsOn: publishedGroovyModules.collect { project(it) }*.groovydoc) << {
-        def groovyApi = new File(output, "groovy-api")
-        if (!groovyApi.exists()) {
-            assert groovyApi.mkdirs()
-        }
-
-        publishedGroovyModules.collect { module ->
-            def baseName = module[module.lastIndexOf(":") + 1..module.size() - 1]
-            copy {
-                from project(module).groovydoc.destinationDir
-                into new File(groovyApi, baseName)
+    // Copies each published module's API docs (taken from its groovydoc/javadoc task, which creates the
+    // task dependency) into <output>/<apiDirName>/<module name>. Runs after the manual so it can't be overwritten.
+    def registerApiDocCopy = { String taskName, String docTaskName, String apiDirName ->
+        tasks.register(taskName, Sync) {
+            mustRunAfter compileManual
+            into new File(output, apiDirName)
+            publishedGroovyModules.each { module ->
+                def baseName = module.substring(module.lastIndexOf(":") + 1)
+                from(project(module).tasks.named(docTaskName)) {
+                    into baseName
+                }
             }
         }
     }
 
-    task assemble(dependsOn: [compile, copyGroovyDoc], overwrite: true) {}
+    def copyGroovyDoc = registerApiDocCopy("copyGroovyDoc", "groovydoc", "groovy-api")
+    def copyJavaDoc = registerApiDocCopy("copyJavaDoc", "javadoc", "java-api")
+
+    tasks.register("assemble") {
+        dependsOn compileManual, copyGroovyDoc, copyJavaDoc
+    }
 }
 
 project(":doc:site") {
@@ -222,13 +147,16 @@ project(":doc:site") {
         thisManual = file("$manualDir/$project.version")
     }
 
-    task clean(overwrite: true) << {
-        if (output.exists()) {
-            assert output.deleteDir()
+    tasks.register("clean") {
+        doLast {
+            if (output.exists()) {
+                assert output.deleteDir()
+            }
         }
     }
 
-    task includeManual(dependsOn: project(":doc:manual").assemble, type: Sync) {
+    def includeManual = tasks.register("includeManual", Sync) {
+        dependsOn project(":doc:manual").tasks.named("assemble")
         from project(":doc:manual").output
         into project.thisManual
 
@@ -237,34 +165,13 @@ project(":doc:site") {
         }
     }
 
-    task copySrc(type: Copy) {
+    def copySrc = tasks.register("copySrc", Copy) {
         from src
         into output
     }
 
-    task compile(dependsOn: [copySrc, includeManual]) {}
-}
-
-// Maven POM generation is not thread safe, so serialize all the Upload tasks we can use `--parallel`.
-def lock = new ReentrantLock()
-def available = lock.newCondition()
-def busy = new AtomicBoolean()
-allprojects {
-    tasks.withType(Upload) { uploadTask ->
-        doFirst {
-            lock.lock()
-            while (busy.get()) {
-                available.await()
-            }
-            busy.set(true)
-        }
-    }
-}
-gradle.taskGraph.afterTask {
-    if (it instanceof Upload && lock.heldByCurrentThread) {
-        busy.set(false)
-        available.signal()
-        lock.unlock()
+    tasks.register("compile") {
+        dependsOn copySrc, includeManual
     }
 }
 

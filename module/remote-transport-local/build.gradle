@@ -1,0 +1,58 @@
+group = appGroup
+description = "Provides an in process bridge for sending/receiving commands"
+
+apply plugin: 'maven-publish'
+
+dependencies {
+    implementation "org.apache.groovy:groovy-all:${groovyVersion}"
+    implementation project(":module:remote-core")
+
+    testImplementation "org.spockframework:spock-core:${spockVersion}"
+    // Gradle 9 no longer supplies the JUnit Platform launcher implicitly; version comes from the JUnit BOM via Spock
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+test {
+    // Enable reflection for use by remote execution tests
+    jvmArgs = ['--add-opens=java.base/java.lang=ALL-UNNAMED']
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId    = project.group
+            artifactId = project.name
+            version    = project.version
+            from components.java
+
+            pom {
+                name = project.name
+                description = project.description
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                scm {
+                    url = "https://github.com/zrstacy/remote-control"
+                }
+                developers {
+                    developer {
+                        id   = "ldaley"
+                        name = "Luke Daley"
+                    }
+                    developer {
+                        id   = "zrstacy"
+                        name = "Rick Stacy"
+                    }
+                }
+            }
+        }
+    }
+}

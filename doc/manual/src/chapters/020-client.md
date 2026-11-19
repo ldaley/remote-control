@@ -33,7 +33,7 @@ This will cause the given closure to be sent to the server (via the remote's `Tr
 
 When the closure is sent to the server, its `delegate`, `owner` and `thisObject` are all set to `null`. This is done to minimise what needs to be serialised and to reduce issues any of these objects being unserialisable or having references to objects that are unserialisable.
 
-However, when the closure is executed on the server side its delegate is set to what is called the command *context*. See the section on [contexts](contexts) for more information.
+However, when the closure is executed on the server side its delegate is set to what is called the command *context*. See the section on [contexts][contexts] for more information.
 
 ### Chaining
 

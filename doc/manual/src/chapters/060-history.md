@@ -2,6 +2,20 @@
 
 This page lists the high level changes between versions of Groovy Remote Control.
 
+## 0.8
+
+### Breaking Changes
+
+* Upgrade to Groovy 3.0.11
+  + Replaced calls to obsolete Groovy methods (e.g. DefaultGroovyMethods.getBytes())
+* Upgrade to Java 17
+  + Removed specific usage of URLClassLoader.  Starting with Java 9, the default system classloader is no longer a URLClassLoader.  Library now utilizes core classloader functionality to find and load inner closures.
+  + Disabled by default in Java 17, reflection must be enabled on the remote server.  This can be done by specifying the option *--add-opens=java.base/java.lang=ALL-UNNAMED*.  See [Migrating From JDK8 to Later JDK Releases](https://docs.oracle.com/en/java/javase/16/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-7744EF96-5899-4FB2-B34E-86D49B2E89B6) for more information.
+
+### Enhancements
+
+* Provided both Javax and Jakarta implementations of the abstract class RemoteControlServlet.  Subclass the appropriate implementation as needed for your application.
+
 ## 0.6
 
 ### Breaking Changes

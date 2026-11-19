@@ -17,20 +17,28 @@ package io.remotecontrol.client
 
 import io.remotecontrol.groovy.client.ClosureCommandGenerator
 import io.remotecontrol.groovy.client.RawClosureCommand
+import spock.lang.Shared
 import spock.lang.Specification
 
 class CommandGeneratorSpec extends Specification {
 
+	@Shared
+	Closure closureSizeZero = { -> "123" }
+	@Shared
+	Closure closureSizeOne  = { -> def c = { -> "123" } }
+	@Shared
+	Closure closureSizeFour = { -> def c = { -> def a = { -> def b = { -> } } }; def d = { -> } }
+
 	def generator = new ClosureCommandGenerator(this.getClass().classLoader)
-	
-	def "support size"(Closure<?> command, int size) {
+
+	def "support size"() {
 		expect:
 		generator.generate(new RawClosureCommand(command, Collections.emptyList())).supports.size() == size
 		where:
-		command                                                              | size
-		{ -> "123" }                                                         | 0
-		{ -> def c = { -> "123" } }                                          | 1
-		{ -> def c = { -> def a = { -> def b = { -> } } }; def d = { -> } }  | 4
+		command          | size
+		closureSizeZero  | 0
+		closureSizeOne   | 1
+		closureSizeFour  | 4
 	}
 
 }
