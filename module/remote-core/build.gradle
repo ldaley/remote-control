@@ -1,17 +1,16 @@
-group appGroup
-description "Provides the core of the remote library"
+group = appGroup
+description = "Provides the core of the remote library"
 
 apply plugin: 'maven-publish'
 
-sourceCompatibility = "${sourceCompatibilityVersion}"
-targetCompatibility = "${targetCompatibilityVersion}"
-
 dependencies {
-    implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
+    implementation "org.apache.groovy:groovy-all:${groovyVersion}"
 
     testImplementation project(":module:remote-transport-local")
     testImplementation project(":module:remote-using-lib")
     testImplementation "org.spockframework:spock-core:${spockVersion}"
+    // Gradle 9 no longer supplies the JUnit Platform launcher implicitly; version comes from the JUnit BOM via Spock
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 java {
@@ -42,7 +41,7 @@ publishing {
                     }
                 }
                 scm {
-                    url = "https://github.com/alkemist/remote-control"
+                    url = "https://github.com/zrstacy/remote-control"
                 }
                 developers {
                     developer {

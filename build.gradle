@@ -50,16 +50,24 @@ def publishedModules = [
 def publishedGroovyModules = groovyModules.findAll { it in publishedModules }
 
 subprojects {
+    // Compile, test and document every JVM module with the Java version from gradle.properties
+    plugins.withType(JavaPlugin).configureEach {
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(javaVersion as int)
+            }
+        }
+    }
+
     if (project.path in groovyModules) {
         apply plugin: "groovy"
         apply plugin: "codenarc"
 
         codenarc {
+            // CodeNarc 4.x is built against Groovy 5 (Gradle's default CodeNarc targets an older Groovy)
+            toolVersion = codenarcVersion
             configFile = rootProject.file("config/codenarc/codenarc.xml")
         }
-
-        sourceCompatibility = 17
-        targetCompatibility = 17
 
         tasks.withType(Test) {
             useJUnitPlatform()
@@ -78,22 +86,8 @@ subprojects {
     }
 
     if (project.path in publishedModules) {
+        // Sources and javadoc jars come from java { withSourcesJar(); withJavadocJar() } in each module's build.gradle
         apply plugin: 'maven-publish'
-
-        task sourcesJar(type: Jar) {
-            classifier = 'sources'
-            from sourceSets.main.allSource
-        }
-
-        task javadocJar(type: Jar) {
-            classifier = 'javadoc'
-            from javadoc
-        }
-
-        artifacts {
-            archives javadocJar
-            archives sourcesJar
-        }
     }
 }
 
@@ -101,7 +95,7 @@ project(':module:remote-using-lib') {
     apply plugin: "groovy"
 
     dependencies {
-        implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
+        implementation "org.apache.groovy:groovy-all:${groovyVersion}"
         implementation project(":module:remote-core")
     }
 }
@@ -112,44 +106,36 @@ project(":doc:manual") {
         output = file("build/manual")
     }
 
-    tasks.register("compile") {
-        new markdown2book.Generator(src, output, "UTF-8").generate()
+    // Generate the manual at execution time (not while the build is being configured)
+    def compileManual = tasks.register("compile") {
+        def srcDir = src
+        def outputDir = output
+        inputs.dir(srcDir)
+        doLast {
+            new markdown2book.Generator(srcDir, outputDir, "UTF-8").generate()
+        }
     }
 
-    tasks.register("copyGroovyDoc") {
-        dependsOn publishedGroovyModules.collect { project(it) }*.groovydoc
-        def groovyApi = new File(output, "groovy-api")
-        if (!groovyApi.exists()) {
-            assert groovyApi.mkdirs()
-        }
-
-        publishedGroovyModules.collect { module ->
-            def baseName = module[module.lastIndexOf(":") + 1..module.size() - 1]
-            copy {
-                from project(module).groovydoc.destinationDir
-                into new File(groovyApi, baseName)
+    // Copies each published module's API docs (taken from its groovydoc/javadoc task, which creates the
+    // task dependency) into <output>/<apiDirName>/<module name>. Runs after the manual so it can't be overwritten.
+    def registerApiDocCopy = { String taskName, String docTaskName, String apiDirName ->
+        tasks.register(taskName, Sync) {
+            mustRunAfter compileManual
+            into new File(output, apiDirName)
+            publishedGroovyModules.each { module ->
+                def baseName = module.substring(module.lastIndexOf(":") + 1)
+                from(project(module).tasks.named(docTaskName)) {
+                    into baseName
+                }
             }
         }
     }
 
-    tasks.register("copyJavaDoc") {
-        dependsOn publishedGroovyModules.collect { project(it) }*.javadoc
-        def javaApi = new File(output, "java-api")
-        if (!javaApi.exists()) {
-            assert javaApi.mkdirs()
-        }
-
-        publishedGroovyModules.collect { module ->
-            def baseName = module[module.lastIndexOf(":") + 1..module.size() - 1]
-            copy {
-                from project(module).javadoc.destinationDir
-                into new File(javaApi, baseName)
-            }
-        }
-    }
+    def copyGroovyDoc = registerApiDocCopy("copyGroovyDoc", "groovydoc", "groovy-api")
+    def copyJavaDoc = registerApiDocCopy("copyJavaDoc", "javadoc", "java-api")
 
     tasks.register("assemble") {
-        dependsOn  tasks.compile, tasks.copyGroovyDoc, tasks.copyJavaDoc
+        dependsOn compileManual, copyGroovyDoc, copyJavaDoc
     }
 }
 
@@ -169,7 +155,8 @@ project(":doc:site") {
         }
     }
 
-    task includeManual(dependsOn: project(":doc:manual").assemble, type: Sync) {
+    def includeManual = tasks.register("includeManual", Sync) {
+        dependsOn project(":doc:manual").tasks.named("assemble")
         from project(":doc:manual").output
         into project.thisManual
 
@@ -178,11 +165,13 @@ project(":doc:site") {
         }
     }
 
-    task copySrc(type: Copy) {
+    def copySrc = tasks.register("copySrc", Copy) {
         from src
         into output
     }
 
-    task compile(dependsOn: [copySrc, includeManual]) {}
+    tasks.register("compile") {
+        dependsOn copySrc, includeManual
+    }
 }
 

@@ -1,16 +1,15 @@
-group appGroup
-description "Provides an in process bridge for sending/receiving commands"
+group = appGroup
+description = "Provides an in process bridge for sending/receiving commands"
 
 apply plugin: 'maven-publish'
 
-sourceCompatibility = "${sourceCompatibilityVersion}"
-targetCompatibility = "${targetCompatibilityVersion}"
-
 dependencies {
-    implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
+    implementation "org.apache.groovy:groovy-all:${groovyVersion}"
     implementation project(":module:remote-core")
 
     testImplementation "org.spockframework:spock-core:${spockVersion}"
+    // Gradle 9 no longer supplies the JUnit Platform launcher implicitly; version comes from the JUnit BOM via Spock
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 java {
@@ -41,7 +40,7 @@ publishing {
                     }
                 }
                 scm {
-                    url = "https://github.com/alkemist/remote-control"
+                    url = "https://github.com/zrstacy/remote-control"
                 }
                 developers {
                     developer {
